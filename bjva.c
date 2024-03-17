@@ -9,7 +9,13 @@
 // Global Variables
 uint64_t epoch_start = 0;
 static rc_mpu_data_t data;
+double servo_rudder_pos =0;
+double direction_rudder =1;
+double sweep_limit =1.5;
+int frequency_hz =50;
 
+double bearing = 90.0; //target direction
+double bearing_tolerance = 3.0;
 /**
  * This template contains these critical components
  * - ensure no existing instances are running and make new PID file
@@ -44,6 +50,46 @@ int main()
 	}
 	// Assign functions to be called when button events occur
 	rc_button_set_callbacks(RC_BTN_PIN_PAUSE,on_pause_press,on_pause_release);
+	
+	// read adc to make sure battery is connected
+	if(rc_adc_init()){
+		fprintf(stderr,"ERROR: failed to run rc_adc_init()\n");
+		return -1;
+	}
+	if(rc_adc_batt()<6.0){
+		fprintf(stderr,"ERROR: battery disconnected or insufficiently charged to drive servos\n");
+		return -1;
+	}
+	printf("bat. voltage=%lf\n", rc_adc_batt());
+	rc_adc_cleanup();
+	
+	// initialize PRU
+	if(rc_servo_init()) return -1;
+	// turn on power
+	printf("Turning On 6V Servo Power Rail\n");
+	rc_servo_power_rail_en(1);
+
+	// initialize and configure MPU
+	rc_mpu_config_t conf_MPU = rc_mpu_default_config();
+	conf_MPU.i2c_bus = I2C_BUS;
+	conf_MPU.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
+	conf_MPU.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
+	
+	// use in DMP mode
+	conf_MPU.dmp_sample_rate = 10; // sample rate in hertz, 200,100,50,40,25,20,10,8,5,4
+	conf_MPU.dmp_fetch_accel_gyro = 1;
+	conf_MPU.enable_magnetometer = 1;
+	//conf_MPU.read_mag_after_callback = 1; //default 1 to improve latency
+	//conf_MPU.dmp_interrupt_priority = 1;
+	//conf_MPU.dmp_interrupt_sched_policy = SCHED_FIFO;
+	conf_MPU.orient= ORIENTATION_Y_UP; // ORIENTATION_Z_UP, ORIENTATION_Z_DOWN, ORIENTATION_X_UP, ORIENTATION_X_DOWN, ORIENTATION_Y_UP, ORIENTATION_Y_DOWN, ORIENTATION_X_FORWARD, ORIENTATION_X_BACK 
+	
+	// initialize the imu for dmp operation
+	if(rc_mpu_initialize_dmp(&data, conf_MPU)){
+		printf("rc_mpu_initialize_failed\n");
+		return -1;
+	}
+	rc_mpu_set_dmp_callback(&print_MPU_data);  // set up the imu for dmp interrupt operation
 
 	// make PID file to indicate your project is running
 	// due to the check made on the call to rc_kill_existing_process() above
@@ -54,29 +100,6 @@ int main()
 	epoch_start = rc_nanos_since_epoch();
 	print_header();
 
-	// initialize and configure MPU
-	rc_mpu_config_t conf_MPU = rc_mpu_default_config();
-	conf_MPU.i2c_bus = I2C_BUS;
-	conf_MPU.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
-	conf_MPU.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
-	
-	// use in DMP mode
-	conf_MPU.dmp_sample_rate = 4; // sample rate in hertz, 200,100,50,40,25,20,10,8,5,4
-	conf_MPU.dmp_fetch_accel_gyro = 1;
-	conf_MPU.enable_magnetometer = 1;
-	conf_MPU.read_mag_after_callback = 1; //default 1 to improve latency
-	//conf_MPU.dmp_interrupt_priority = 1;
-	//conf_MPU.dmp_interrupt_sched_policy = SCHED_FIFO;
-	conf_MPU.orient= ORIENTATION_Z_UP;
-	
-	// initialize the imu for dmp operation
-	if(rc_mpu_initialize_dmp(&data, conf_MPU)){
-		printf("rc_mpu_initialize_failed\n");
-		return -1;
-	}
-	
-	rc_mpu_set_dmp_callback(&print_MPU_data);  // set up the imu for dmp interrupt operation
-	
 	rc_set_state(RUNNING);
 	// Keep looping until state changes to EXITING
 	while(rc_get_state()!=EXITING){
@@ -84,7 +107,25 @@ int main()
 		if(rc_get_state()==RUNNING){
 			rc_led_set(RC_LED_GREEN, 1);
 			rc_led_set(RC_LED_RED, 0);
-						
+			if(abs(bearing - data.compass_heading*RAD_TO_DEG) > bearing_tolerance)
+			{
+				if(bearing < data.compass_heading*RAD_TO_DEG){
+					direction_rudder =-1;
+				}
+				else{
+				direction_rudder =1;
+				}
+				servo_rudder_pos += direction_rudder * sweep_limit / frequency_hz;
+				// reset pulse width at end of sweep
+				if(servo_rudder_pos>sweep_limit){
+					servo_rudder_pos = sweep_limit;
+				}
+				else if(servo_rudder_pos < (-sweep_limit)){
+					servo_rudder_pos = -sweep_limit;
+				}
+				// send result
+				if(rc_servo_send_pulse_normalized(SERVO_RUDDER,servo_rudder_pos)==-1) return -1;
+			}
 		}
 		else{
 			rc_led_set(RC_LED_GREEN, 0);
@@ -99,6 +140,9 @@ int main()
 	rc_led_set(RC_LED_RED, 0);
 	rc_led_cleanup();
 	rc_mpu_power_off();
+	rc_servo_power_rail_en(0);
+	rc_servo_cleanup();
+	//rc_dsm_cleanup();
 	printf("\n\n");
 	printf("total time: %llu\n", rc_nanos_since_epoch()-epoch_start);
 	fflush(stdout);
@@ -143,9 +187,10 @@ void print_header()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
 	printf("\nPress and release pause button to turn green LED on and off");
-	printf("\nhold pause button down for 2 seconds to exit\n");
-	printf("calibrated GYRO-MAG-ACCEL: %d, %d, %d\n", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
-	printf("\nstart time: %llu", epoch_start);
+	printf("\nhold pause button down for 2 seconds to exit");
+	printf("\ncalibrated GYRO-MAG-ACCEL: %d, %d, %d", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
+	printf("\nif Mag doesn't work, then recalibrate it");
+	printf("\n\nstart time: %llu", epoch_start);
 	// Header for DMP data
 	printf("\n");
 	printf(" Raw Compass |");
@@ -158,22 +203,23 @@ void print_header()
 	printf("  Gyro XYZ (deg/s) |");
 	printf(" Temp(C)|");
 	printf("\n");
+	
+	return;
 }
 
 void print_MPU_data()
 {
-	rc_mpu_read_mag(&data);
-	printf("\r");
-	printf("    %6.1f   |", data.compass_heading_raw*RAD_TO_DEG);
+	printf("\r ");
+	printf("   %6.1f   |", data.compass_heading_raw*RAD_TO_DEG);
 	printf("   %6.1f   |", data.compass_heading*RAD_TO_DEG);
-	printf(" %4.1f %4.1f %4.1f %4.1f |",	data.fused_quat[QUAT_W], data.fused_quat[QUAT_X], data.fused_quat[QUAT_Y], data.fused_quat[QUAT_Z]);
-	printf(" %4.1f %4.1f %4.1f %4.1f |",	data.dmp_quat[QUAT_W], data.dmp_quat[QUAT_X], data.dmp_quat[QUAT_Y], data.dmp_quat[QUAT_Z]);
-	printf("%6.1f %6.1f %6.1f |",	data.fused_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.fused_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.fused_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
-	printf("%6.1f %6.1f %6.1f |",	data.dmp_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.dmp_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.dmp_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
-	printf(" %5.2f %5.2f %5.2f |",	data.accel[0], data.accel[1], data.accel[2]);
-	printf(" %5.1f %5.1f %5.1f |",	data.gyro[0], data.gyro[1], data.gyro[2]);
+	printf(" %4.1f %4.1f %4.1f %4.1f |", data.fused_quat[QUAT_W], data.fused_quat[QUAT_X], data.fused_quat[QUAT_Y], data.fused_quat[QUAT_Z]);
+	printf(" %4.1f %4.1f %4.1f %4.1f |", data.dmp_quat[QUAT_W], data.dmp_quat[QUAT_X], data.dmp_quat[QUAT_Y], data.dmp_quat[QUAT_Z]);
+	printf("%6.1f %6.1f %6.1f |", data.fused_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.fused_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.fused_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
+	printf("%6.1f %6.1f %6.1f |", data.dmp_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.dmp_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.dmp_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
+	printf(" %5.2f %5.2f %5.2f |", data.accel[0], data.accel[1], data.accel[2]);
+	printf(" %5.1f %5.1f %5.1f |", data.gyro[0], data.gyro[1], data.gyro[2]);
 	rc_mpu_read_temp(&data);
 	printf(" %6.2f |", data.temp);
 	fflush(stdout);
-	
+	return;
 }

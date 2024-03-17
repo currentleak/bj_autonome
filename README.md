@@ -1,2 +1,2 @@
-# bj_autonome
-voilier miniature autonome
+# BJVA 
+Voilier miniature Autonome

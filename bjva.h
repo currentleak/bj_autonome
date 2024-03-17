@@ -7,9 +7,9 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
-//#include <getopt.h>
-//#include <signal.h>
-//#include <stdlib.h> // for atoi() and exit()
+#include <getopt.h>
+#include <signal.h>
+#include <stdlib.h> // for atoi() and exit()
 #include <robotcontrol.h> // includes ALL Robot Control subsystems
 #include <rc_usefulincludes.h>
 #include <rc/mpu.h>
@@ -20,6 +20,9 @@
 #define I2C_BUS 2
 #define GPIO_INT_PIN_CHIP 3
 #define GPIO_INT_PIN_PIN  21
+
+#define SERVO_RUDDER 1  // servo for rudder
+#define SERVO_SHEET 2   // servo for main sail and genova sheet
 
 // function declarations
 void on_pause_press();
