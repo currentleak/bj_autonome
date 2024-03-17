@@ -42,7 +42,6 @@ int main()
 		fprintf(stderr,"ERROR: failed to initialize pause button\n");
 		return -1;
 	}
-
 	// Assign functions to be called when button events occur
 	rc_button_set_callbacks(RC_BTN_PIN_PAUSE,on_pause_press,on_pause_release);
 
@@ -51,37 +50,41 @@ int main()
 	// we can be fairly confident there is no PID file already and we can
 	// make our own safely.
 	rc_make_pid_file();
-
-	printf("Projet BJ - Voilier Miniature Autonome\n");
 	
 	epoch_start = rc_nanos_since_epoch();
 	print_header();
 
-	// configure MPU
+	// initialize and configure MPU
 	rc_mpu_config_t conf_MPU = rc_mpu_default_config();
 	conf_MPU.i2c_bus = I2C_BUS;
 	conf_MPU.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
 	conf_MPU.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
-	// conf_MPU.dmp_sample_rate = 100; // use in DMP mode
-	// conf_MPU.dmp_fetch_accel_gyro=1;
+	
+	// use in DMP mode
+	conf_MPU.dmp_sample_rate = 4; // sample rate in hertz, 200,100,50,40,25,20,10,8,5,4
+	conf_MPU.dmp_fetch_accel_gyro = 1;
 	conf_MPU.enable_magnetometer = 1;
+	conf_MPU.read_mag_after_callback = 1; //default 1 to improve latency
+	//conf_MPU.dmp_interrupt_priority = 1;
+	//conf_MPU.dmp_interrupt_sched_policy = SCHED_FIFO;
+	conf_MPU.orient= ORIENTATION_Z_UP;
 	
-	if(rc_mpu_initialize(&data, conf_MPU))
-	{
-		fprintf(stderr,"rc_mpu_initialize_failed\n");
+	// initialize the imu for dmp operation
+	if(rc_mpu_initialize_dmp(&data, conf_MPU)){
+		printf("rc_mpu_initialize_failed\n");
 		return -1;
-	}		
+	}
 	
-	// Keep looping until state changes to EXITING
+	rc_mpu_set_dmp_callback(&print_MPU_data);  // set up the imu for dmp interrupt operation
+	
 	rc_set_state(RUNNING);
+	// Keep looping until state changes to EXITING
 	while(rc_get_state()!=EXITING){
 		// do things based on the state
 		if(rc_get_state()==RUNNING){
 			rc_led_set(RC_LED_GREEN, 1);
 			rc_led_set(RC_LED_RED, 0);
-			
-			print_MPU_data();
-			
+						
 		}
 		else{
 			rc_led_set(RC_LED_GREEN, 0);
@@ -96,12 +99,13 @@ int main()
 	rc_led_set(RC_LED_RED, 0);
 	rc_led_cleanup();
 	rc_mpu_power_off();
-	//fflush(stdout);
+	printf("\n\n");
+	printf("total time: %llu\n", rc_nanos_since_epoch()-epoch_start);
+	fflush(stdout);
 	rc_button_cleanup();	// stop button handlers
 	rc_remove_pid_file();	// remove pid file LAST
 	return 0;
 }
-
 
 /**
  * Make the Pause button toggle between paused and running states.
@@ -130,25 +134,26 @@ void on_pause_press()
 		rc_usleep(us_wait/samples);
 		if(rc_button_get_state(RC_BTN_PIN_PAUSE)==RC_BTN_STATE_RELEASED) return;
 	}
-	printf("long press detected, shutting down\n");
+	printf("\n\nlong press detected, shutting down\n");
 	rc_set_state(EXITING);
 	return;
 }
 
 void print_header()
 {
-	printf("\nstart time: %llu\n", epoch_start);
-	printf("\nPress and release pause button to turn green LED on and off\n");
-	printf("hold pause button down for 2 seconds to exit\n");
-	
+	printf("\nProjet BJ - Voilier Miniature Autonome\n");
+	printf("\nPress and release pause button to turn green LED on and off");
+	printf("\nhold pause button down for 2 seconds to exit\n");
+	printf("calibrated GYRO-MAG-ACCEL: %d, %d, %d\n", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
+	printf("\nstart time: %llu", epoch_start);
 	// Header for DMP data
-	printf(" ");
-	printf("Raw Compass |");
+	printf("\n");
+	printf(" Raw Compass |");
 	printf("FilteredComp|");	
-	//printf("   Fused Quaternion  |");
-	//printf(" FusedTaitBryan(deg) |");	
-	//printf("    DMP Quaternion   |");
-	//printf(" DMP TaitBryan (deg) |");	
+	printf("   Fused Quaternion  |");
+	printf("    DMP Quaternion   |");
+	printf(" FusedTaitBryan(deg) |");	
+	printf(" DMP TaitBryan (deg) |");	
 	printf(" Accel XYZ (m/s^2) |");
 	printf("  Gyro XYZ (deg/s) |");
 	printf(" Temp(C)|");
@@ -157,17 +162,18 @@ void print_header()
 
 void print_MPU_data()
 {
-	rc_mpu_read_accel(&data);
-	rc_mpu_read_gyro(&data);
 	rc_mpu_read_mag(&data);
-	rc_mpu_read_temp(&data); 
 	printf("\r");
-	printf(" ");
-	printf("%6.1f %6.1f %6.1f |", data.mag[0], data.mag[1], data.mag[2]);
-	//printf("   %6.1f   |", data.compass_heading_raw*RAD_TO_DEG);
-	//printf("   %6.1f   |", data.compass_heading*RAD_TO_DEG);
+	printf("    %6.1f   |", data.compass_heading_raw*RAD_TO_DEG);
+	printf("   %6.1f   |", data.compass_heading*RAD_TO_DEG);
+	printf(" %4.1f %4.1f %4.1f %4.1f |",	data.fused_quat[QUAT_W], data.fused_quat[QUAT_X], data.fused_quat[QUAT_Y], data.fused_quat[QUAT_Z]);
+	printf(" %4.1f %4.1f %4.1f %4.1f |",	data.dmp_quat[QUAT_W], data.dmp_quat[QUAT_X], data.dmp_quat[QUAT_Y], data.dmp_quat[QUAT_Z]);
+	printf("%6.1f %6.1f %6.1f |",	data.fused_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.fused_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.fused_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
+	printf("%6.1f %6.1f %6.1f |",	data.dmp_TaitBryan[TB_PITCH_X]*RAD_TO_DEG, data.dmp_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG, data.dmp_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
 	printf(" %5.2f %5.2f %5.2f |",	data.accel[0], data.accel[1], data.accel[2]);
 	printf(" %5.1f %5.1f %5.1f |",	data.gyro[0], data.gyro[1], data.gyro[2]);
-	printf(" %4.1f    ", data.temp);
+	rc_mpu_read_temp(&data);
+	printf(" %6.2f |", data.temp);
+	fflush(stdout);
 	
 }

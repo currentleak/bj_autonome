@@ -25,8 +25,8 @@
 void on_pause_press();
 void on_pause_release();
 
-void print_header();
-void print_MPU_data();
+static void print_header();
+static void print_MPU_data();
 
 
 
