@@ -1,3 +1,50 @@
+struct coordonne
+        double latitude, longitude;
+
+struct waypoint // latitude-longitude telling us where to go
+        coordonne wp;
+        int identification;
+        int target_radius
+
+waypoint start, end;
+waypoint list;  // waypoint table 1 to max 255
+waypoint obstacle;  // waypoint table 1 to max 255
+
+
+coordonne current_heading
+coordonne target_heading
+
+sailing_state = 'normal'  # sailing state can be 'normal','switch_to_port_tack' or  'switch_to_stbd_tack'
+
+
+wind_direction
+wind_direction_apparent
+wind_angle_target
+
+attack_angle
+
+struct tack
+        int decision_sample;
+        int decision_threshold
+
+fonction 
+        tack_voting
+
+        distance_to_waypoint
+        heading_to_waypoint
+
+        calculate_state_and_goal
+
+        projection  // convert coord to x,y in meter
+        projection_inverse
+
+        check_safety_zone
+
+        pid_control
+
+        wave_estimation
+
+
 
 
 https://github.com/Maritime-Robotics-Student-Society/sailing-robot/blob/master/src/sailing_robot/scripts/simulation_heading
