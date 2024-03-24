@@ -24,6 +24,7 @@
 #define SERVO_RUDDER 1  // servo for rudder
 #define SERVO_SHEET 2   // servo for main sail and genova sheet
 
+
 // function declarations
 void on_pause_press();
 void on_pause_release();

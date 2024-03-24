@@ -1,10 +1,4 @@
-struct coordonne
-        double latitude, longitude;
 
-struct waypoint // latitude-longitude telling us where to go
-        coordonne wp;
-        int identification;
-        int target_radius
 
 waypoint start, end;
 waypoint list;  // waypoint table 1 to max 255
@@ -30,15 +24,11 @@ struct tack
 fonction 
         tack_voting
 
-        distance_to_waypoint
-        heading_to_waypoint
 
-        calculate_state_and_goal
 
-        projection  // convert coord to x,y in meter
-        projection_inverse
 
-        check_safety_zone
+
+       
 
         pid_control
 
