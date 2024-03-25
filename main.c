@@ -6,6 +6,8 @@
 
 int main()
 {
+	printf("\nProjet BJ - Voilier Miniature Autonome\n");
+
 	Waypoint_list *waypoint_passage = read_waypoint_file();
 	if(waypoint_passage==NULL)
 	{
@@ -14,18 +16,17 @@ int main()
 	else
 	{
 		printf("\nwaypoint qty=%d", waypoint_passage->waypoint_qty);
+		printf("\nWP#   Latitude   Longitude  Next WP: distance, bearing");
 		Waypoint* actuel = waypoint_passage->first_waypoint;
 		while (actuel != NULL)
     	{
-			printf("\n wp#:%3d ", actuel->identification);
-        	printf("lat: %lf lon: %lf", actuel->wp_coordinate.latitude, actuel->wp_coordinate.longitude);
+			printf("\n%3d  ", actuel->identification);
+        	printf(" %lf  %lf   ", actuel->wp_coordinate.latitude, actuel->wp_coordinate.longitude);
+			printf("     %8.3lf, %5.1lf", actuel->distance_to_next_wp, actuel->bearing_to_next_wp);
         	actuel = actuel->next_waypoint;
     	}
-    	printf("\nNULL\n");
+    	printf("\n");
 	}
 
-
-	printf("\ndistance= %lf", distance_between_latlon(waypoint_passage->first_waypoint->wp_coordinate, waypoint_passage->destination_waypoint->wp_coordinate));
-	printf("\n");
 }
 

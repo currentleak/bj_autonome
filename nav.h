@@ -8,8 +8,9 @@
 #include <stdio.h>
 
 
-#define TERRITORY_CODE 19  // FID 523
-#define WAYPOINT_NUMBER_MAX 1024
+//#define TERRITORY_CODE 19  // FID 523
+#define DEG2RAD 0.0174532925199 // Pi/180
+#define EARTH_RADIUS 6371
 
 struct Coordinate
 {
@@ -29,6 +30,8 @@ typedef struct Waypoint // latitude-longitude telling us where to go
     struct Point xy_coord;
     int identification;
     int target_radius;
+    double distance_to_next_wp;
+    double bearing_to_next_wp;
     struct Waypoint* next_waypoint;
     struct Waypoint* prev_waypoint;
 }Waypoint;
@@ -41,15 +44,11 @@ typedef struct Waypoint_list // waypoint list for passage
 }Waypoint_list;
 
 Waypoint_list* read_waypoint_file();
-int projection_xy(Waypoint*, Waypoint*);
-double distance_between_latlon(struct Coordinate, struct Coordinate);
+double calculate_distance(struct Coordinate, struct Coordinate);
+double calculate_bearing(struct Coordinate, struct Coordinate);
 
-int distance_between_lat(struct Coordinate*, struct Coordinate*);
-int distance_between_lon(struct Coordinate*, struct Coordinate*);
+//int check_safety_zone ();
+//int projection_xy(Waypoint*, Waypoint*);
 
-int distance_to_waypoint ();
-int heading_to_waypoint (Waypoint*);
-
-int check_safety_zone ();
 
 
