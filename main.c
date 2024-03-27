@@ -27,6 +27,8 @@ int main()
     	}
     	printf("\n");
 	}
+	
+	destroy_waypoint_list();
 
 }
 

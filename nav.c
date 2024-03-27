@@ -90,7 +90,8 @@ double calculate_distance(struct Coordinate c1, struct Coordinate c2)
 }
 
 // Function to calculate initial bearing between two points
-double calculate_bearing(struct Coordinate c1, struct Coordinate c2) {
+double calculate_bearing(struct Coordinate c1, struct Coordinate c2) 
+{
     double delta_lon = DEG2RAD*(c2.longitude - c1.longitude);
     double x = cos(DEG2RAD*c2.latitude) * sin(delta_lon);
     double y = cos(DEG2RAD*c1.latitude) * sin(DEG2RAD*c2.latitude) - sin(DEG2RAD*c1.latitude) * cos(DEG2RAD*c2.latitude) * cos(delta_lon);
@@ -103,3 +104,15 @@ double calculate_bearing(struct Coordinate c1, struct Coordinate c2) {
     return bearing;
 }
 
+void destroy_waypoint_list(Waypoint_list* wp_list)
+{
+	Waypoint* wp, wp_next;
+	wp = wp_list->first_waypoint;
+	while(wp!=NULL)
+	{
+		wp_next = wp->next_waypoint;
+		free(wp);
+		wp = wp_next;
+	}
+	free(wp_list);
+}

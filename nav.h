@@ -46,6 +46,7 @@ typedef struct Waypoint_list // waypoint list for passage
 Waypoint_list* read_waypoint_file();
 double calculate_distance(struct Coordinate, struct Coordinate);
 double calculate_bearing(struct Coordinate, struct Coordinate);
+void destroy_waypoint_list(Waypoint_list*);
 
 //int check_safety_zone ();
 //int projection_xy(Waypoint*, Waypoint*);
