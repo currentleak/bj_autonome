@@ -83,9 +83,6 @@ Waypoint_list *read_waypoint_file()
         printf("\nWaypoint list should contain at least 2 coordinates to make a passage");
         return NULL;
     }
-
-    
-
     return wp_list;
 }
 
@@ -134,6 +131,8 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 int get_gps_coordinate(Coordinate *gps_coord)
 {
     //todo: check if gps is locked 
+
+    //data for simulation
     static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
     46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
     //46.683924  -71.878586 --> start
@@ -141,18 +140,19 @@ int get_gps_coordinate(Coordinate *gps_coord)
     //46.668241 -71.791758
     //46.666564 -71.693272
     //46.673956 -71.665416
-    //46.697037 -71.576235
+    //46.697037 -71.576235 --> destination
     static int i=0;
     gps_coord->latitude = c[i];
     gps_coord->longitude = c[i+1];
     i=i+2;
     if(i==30) i=0;
     return 0;
+
 }
 
 double goto_waypoint(Coordinate *coord, Waypoint *wp)
 {
-
+    //todo: PID goto wp
 
     return calculate_distance(coord, wp->wp_coordinate);
 }

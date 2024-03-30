@@ -45,8 +45,8 @@ int main()
 
 	// get locked GPS
 
-	Coordinate (*coord_current) = malloc(sizeof(*coord_current));
-	if(coord_current==NULL)
+	Coordinate (*current_position) = malloc(sizeof(*current_position));
+	if(current_position==NULL)
 	{
         printf("\nError allocating memory"); 
         return 1;
@@ -54,8 +54,8 @@ int main()
 	printf("\nWaiting to be at starting line... \n");
 	do
 	{
-		get_gps_coordinate(coord_current);
-		distance_to_target = calculate_distance(coord_current, target_wp->wp_coordinate);
+		get_gps_coordinate(current_position);
+		distance_to_target = calculate_distance(current_position, target_wp->wp_coordinate);
 		printf("\rDistance to starting line = %8.3lf", distance_to_target);
 		fflush(stdout);
 		sleep(1);
@@ -67,9 +67,9 @@ int main()
 	fflush(stdout);
 	do
 	{
-		get_gps_coordinate(coord_current);
-		distance_to_target = goto_waypoint(coord_current, target_wp);
-		bearing_to_target = calculate_bearing(coord_current, target_wp->wp_coordinate);
+		get_gps_coordinate(current_position);
+		distance_to_target = goto_waypoint(current_position, target_wp);
+		bearing_to_target = calculate_bearing(current_position, target_wp->wp_coordinate);
 		printf("\nNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf",target_wp->identification, distance_to_target, bearing_to_target);
 		fflush(stdout);
 		if(distance_to_target < target_wp->target_radius)
@@ -80,15 +80,13 @@ int main()
 		else sleep(1);
 	}
 	while(target_wp != waypoint_passage->destination_waypoint);
-
-
-
+	printf("\nAt destination!\n");
 	fflush(stdout);
 	if(waypoint_passage!=NULL)
 	{
 		destroy_waypoint_list(waypoint_passage);
 	}
-	free(coord_current);
+	free(current_position);
 	return 0;
 }
 
