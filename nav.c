@@ -34,7 +34,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = 0;  // starting waypoint
-        wp->target_radius = 10;
+        wp->target_radius = 0.01; // 10m
         wp->next_waypoint = NULL;
         wp->prev_waypoint = NULL;
         wp_list->first_waypoint = wp;
@@ -64,7 +64,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = i;
-        wp->target_radius = 100;
+        wp->target_radius = 0.1;  // 100m
         wp->prev_waypoint = wp_list->destination_waypoint;
         wp->next_waypoint = NULL;
         wp->distance_to_next_wp = 0.0;
@@ -76,8 +76,16 @@ Waypoint_list *read_waypoint_file()
         wp_list->waypoint_qty++;
         i++;
     }
-    wp->target_radius = 10; // destination waypoint has a closer target radius
     fclose(fptr);
+    wp->target_radius = 0.01; // 10m, destination waypoint has a closer target radius
+    if(wp_list->waypoint_qty < 2)
+    {
+        printf("\nWaypoint list should contain at least 2 coordinates to make a passage");
+        return NULL;
+    }
+
+    
+
     return wp_list;
 }
 
@@ -126,8 +134,25 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 int get_gps_coordinate(Coordinate *gps_coord)
 {
     //todo: check if gps is locked 
-
-    gps_coord->latitude = 46.0;
-    gps_coord->longitude = -71.0;
+    static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
+    46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
+    //46.683924  -71.878586 --> start
+    //46.685768 -71.838973 --> wp1
+    //46.668241 -71.791758
+    //46.666564 -71.693272
+    //46.673956 -71.665416
+    //46.697037 -71.576235
+    static int i=0;
+    gps_coord->latitude = c[i];
+    gps_coord->longitude = c[i+1];
+    i=i+2;
+    if(i==30) i=0;
     return 0;
+}
+
+double goto_waypoint(Coordinate *coord, Waypoint *wp)
+{
+
+
+    return calculate_distance(coord, wp->wp_coordinate);
 }

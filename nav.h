@@ -29,7 +29,7 @@ typedef struct Waypoint // latitude-longitude telling us where to go
     struct Coordinate *wp_coordinate;
     //Point *xy_coord;
     int identification;
-    int target_radius;
+    double target_radius;
     double distance_to_next_wp;
     double bearing_to_next_wp;
     struct Waypoint *next_waypoint;
@@ -48,8 +48,8 @@ void destroy_waypoint_list(Waypoint_list *);
 double calculate_distance(Coordinate *, Coordinate *);
 double calculate_bearing(Coordinate *, Coordinate *);
 
-int get_gps_coordinate(struct Coordinate *);
-
+int get_gps_coordinate(Coordinate *);
+double goto_waypoint(Coordinate *, Waypoint *);
 
 //int check_safety_zone ();
 //int projection_xy(Waypoint*, Waypoint*);

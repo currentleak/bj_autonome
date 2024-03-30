@@ -16,57 +16,72 @@ int main()
 
 
 	Waypoint_list *waypoint_passage = read_waypoint_file();
-	Waypoint *wp_current;
+	Waypoint *target_wp;
+	double distance_to_target = 0.0;
+	double bearing_to_target = 0.0;
 
 	if(waypoint_passage==NULL)
 	{
 		printf("\nError no passage defined");
+		return 1;
 	}
 	else
 	{
-		printf("\nwaypoint qty=%d", waypoint_passage->waypoint_qty);
+		printf("\nwaypoint qty=%d", waypoint_passage->waypoint_qty-1); //excluding the starting waypoint
 		printf("\nWP#   Latitude   Longitude  Next WP: distance, bearing");
-		wp_current = waypoint_passage->first_waypoint;
-		double dist = 0.0;
-		while (wp_current != NULL)
+		target_wp = waypoint_passage->first_waypoint;
+		while (target_wp != NULL)
     	{
-			printf("\n%3d  ", wp_current->identification);
-        	printf(" %lf  %lf   ", wp_current->wp_coordinate->latitude, wp_current->wp_coordinate->longitude);
-			printf("     %8.3lf, %5.1lf", wp_current->distance_to_next_wp, wp_current->bearing_to_next_wp);
-			dist = dist + wp_current->distance_to_next_wp;
-        	wp_current = wp_current->next_waypoint;
+			printf("\n%3d  ", target_wp->identification);
+        	printf(" %lf  %lf   ", target_wp->wp_coordinate->latitude, target_wp->wp_coordinate->longitude);
+			printf("     %8.3lf, %5.1lf", target_wp->distance_to_next_wp, target_wp->bearing_to_next_wp);
+			distance_to_target = distance_to_target + target_wp->distance_to_next_wp;
+        	target_wp = target_wp->next_waypoint;
     	}
-    	printf("\nDistance totale= %8.3lf\n", dist);
+    	printf("\nDistance totale= %8.3lf\n", distance_to_target);
 	}
 	
-	wp_current = waypoint_passage->first_waypoint; // GPS coord Starting point
+	target_wp = waypoint_passage->first_waypoint; // GPS coord Starting point
 
 	// get locked GPS
 
 	Coordinate (*coord_current) = malloc(sizeof(*coord_current));
 	if(coord_current==NULL)
-	{    
+	{
         printf("\nError allocating memory"); 
         return 1;
-    
 	}
-	printf("\nWaiting to be at starting line...");
-	double active_distance = 0.0;
+	printf("\nWaiting to be at starting line... \n");
 	do
 	{
 		get_gps_coordinate(coord_current);
-		active_distance = calculate_distance(coord_current, wp_current->wp_coordinate);
-		printf("\nDistance to starting line = %lf", active_distance);
+		distance_to_target = calculate_distance(coord_current, target_wp->wp_coordinate);
+		printf("\rDistance to starting line = %8.3lf", distance_to_target);
 		fflush(stdout);
-		sleep(5);
-	} while (active_distance > 10.0);
-	
+		sleep(1);
+	} while (distance_to_target > 0.01);
 
-	while(wp_current != waypoint_passage->destination_waypoint)
-	{
-		//goto_waypoint(wp_current);
-	}
+	target_wp = target_wp->next_waypoint;
 	
+	printf("\nStart passage...\n");
+	fflush(stdout);
+	do
+	{
+		get_gps_coordinate(coord_current);
+		distance_to_target = goto_waypoint(coord_current, target_wp);
+		bearing_to_target = calculate_bearing(coord_current, target_wp->wp_coordinate);
+		printf("\nNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf",target_wp->identification, distance_to_target, bearing_to_target);
+		fflush(stdout);
+		if(distance_to_target < target_wp->target_radius)
+		{
+			target_wp = target_wp->next_waypoint;
+			printf("\n");
+		}
+		else sleep(1);
+	}
+	while(target_wp != waypoint_passage->destination_waypoint);
+
+
 
 	fflush(stdout);
 	if(waypoint_passage!=NULL)
