@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "nav.c"
 //#include "bbb_rc.c"
@@ -21,6 +22,7 @@ int main()
 	Waypoint *target_wp;
 	double distance_to_target = 0.0;
 	double bearing_to_target = 0.0;
+	time_t time_passage;
 
 	if(waypoint_passage==NULL)
 	{
@@ -64,8 +66,9 @@ int main()
 	} while (distance_to_target > 0.01);
 
 	target_wp = target_wp->next_waypoint;
+	time_passage = time(NULL);
 	
-	printf("\nStart passage...\n");
+	printf("\nStart passage... time= %ld\n", time_passage);
 	fflush(stdout);
 	do
 	{
@@ -82,7 +85,10 @@ int main()
 		sleep(1);
 	}
 	while(target_wp != waypoint_passage->destination_waypoint);
-	printf("\nAt destination!\n");
+
+	time_passage = time(NULL) - time_passage;
+	printf("\nAt destination!  Duration= %lds ", time_passage);
+
 	fflush(stdout);
 	if(waypoint_passage!=NULL)
 	{
