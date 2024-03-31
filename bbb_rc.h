@@ -26,6 +26,7 @@
 
 
 // function declarations
+int init_bbb_rc();
 void on_pause_press();
 void on_pause_release();
 

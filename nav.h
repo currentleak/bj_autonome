@@ -6,6 +6,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 //#define TERRITORY_CODE 19  // FID 523
 #define DEG2RAD 0.0174532925199 // Pi/180

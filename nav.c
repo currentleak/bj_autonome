@@ -5,7 +5,6 @@
  *
  */
 #include "nav.h"
-#include <math.h>
 
 Waypoint_list *read_waypoint_file()
 {
