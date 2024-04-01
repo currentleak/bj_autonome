@@ -148,8 +148,9 @@ int get_gps_coordinate(GPS_data *gps)
         return 1;
     }
 
-    while (fgets(line, sizeof(line), port_com) != NULL) {
-        printf("%s", line);
+    int data_valid=0;
+    while (fgets(line, sizeof(line), port_com) != NULL && data_valid < 2) {
+        //printf("%s", line);
         switch (minmea_sentence_id(line, false)) {
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
@@ -159,6 +160,7 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
                     gps->speed = minmea_tofloat(&frame.speed);
+                    data_valid++;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
@@ -171,6 +173,7 @@ int get_gps_coordinate(GPS_data *gps)
                 if (minmea_parse_gga(&frame, line)) {
                     //printf(INDENT_SPACES "$xxGGA: fix quality: %d\n", frame.fix_quality);
                     gps->fix_quality = frame.fix_quality;
+                    data_valid++;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
