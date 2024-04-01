@@ -149,7 +149,7 @@ int get_gps_coordinate(GPS_data *gps)
     }
 
     int data_valid=0;
-    while (fgets(line, sizeof(line), port_com) != NULL && data_valid < 2) {
+    while (fgets(line, sizeof(line), port_com) != NULL && data_valid < 4) {
         //printf("%s", line);
         switch (minmea_sentence_id(line, false)) {
             case MINMEA_SENTENCE_RMC: {
@@ -202,6 +202,7 @@ int get_gps_coordinate(GPS_data *gps)
                         printf(INDENT_SPACES "$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d dbm\n", frame.sats[i].nr,
                             frame.sats[i].elevation, frame.sats[i].azimuth, frame.sats[i].snr); */
                     gps->sat_in_view = frame.total_sats;
+                    data_valid++;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxGSV sentence is not parsed\n");
@@ -219,6 +220,7 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->true_track = minmea_tofloat(&frame.true_track_degrees);
                     gps->mag_track = minmea_tofloat(&frame.magnetic_track_degrees);
                     gps->speed_kph = minmea_tofloat(&frame.speed_kph);
+                    data_valid++;
                }
                else {
                     //printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");

@@ -46,14 +46,13 @@ int main()
 	
 	target_wp = waypoint_passage->first_waypoint; // GPS coord Starting point
 
-	// get locked GPS
-
 	printf("\nWaiting to be at starting line... \n");
 	do
 	{
 		get_gps_coordinate(&gps);
+		printf("\rGPS Qty:%3d, Fix Qual:%2d, ", gps.sat_in_view, gps.fix_quality);
 		distance_to_target = calculate_distance(&gps.gps_coord , target_wp->wp_coordinate);
-		printf("\rDistance to starting line = %8.3lf", distance_to_target);
+		printf("Distance to starting line = %8.3lf", distance_to_target);
 		fflush(stdout);
 		sleep(1);
 	} while (distance_to_target > 0.01);
