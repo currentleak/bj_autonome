@@ -55,7 +55,7 @@ int main()
 		printf("Distance to starting line = %8.3lf", distance_to_target);
 		fflush(stdout);
 		sleep(1);
-	} while (distance_to_target > 0.01);
+	} while (distance_to_target == NAN || distance_to_target > 0.01);
 
 	target_wp = target_wp->next_waypoint;
 	time_passage = time(NULL);
