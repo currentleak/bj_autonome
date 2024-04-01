@@ -127,7 +127,7 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 	free(wp_list);
 }
 
-int get_gps_coordinate(Coordinate *gps_coord)
+int get_gps_coordinate(GPS_data *gps)
 {
     //todo: check if gps is locked 
     
@@ -135,16 +135,16 @@ int get_gps_coordinate(Coordinate *gps_coord)
     static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
     46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
     static int i=0;
-    gps_coord->latitude = c[i];
-    gps_coord->longitude = c[i+1];
+    gps->gps_coord.latitude = c[i];
+    gps->gps_coord.longitude = c[i+1];
     i=i+2;
     if(i==30) i=0;
 
     char line[MINMEA_MAX_SENTENCE_LENGTH];
-    FILE *port_com = fopen("/dev/ttyO2", "r");
-    if(port_com == NULL)  // Beagle Blue : ttyO1=Uart1, ttyO2=Uart2(GPS 5V)
+    FILE *port_com = fopen("/dev/ttyO2", "r"); // Beagle Blue : ttyO1=Uart1(3.3V), ttyO2=Uart2(GPS 5V)
+    if(port_com == NULL)  
     {
-        printf("\nError opening serial port!");                
+        printf("\nError opening GPS serial port!");                
         return 1;
     }
 
@@ -154,18 +154,11 @@ int get_gps_coordinate(Coordinate *gps_coord)
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
                 if (minmea_parse_rmc(&frame, line)) {
-                    printf(INDENT_SPACES "$xxRMC: raw coordinates and speed: (%d/%d,%d/%d) %d/%d\n",
-                            frame.latitude.value, frame.latitude.scale,
-                            frame.longitude.value, frame.longitude.scale,
-                            frame.speed.value, frame.speed.scale);
-                    printf(INDENT_SPACES "$xxRMC fixed-point coordinates and speed scaled to three decimal places: (%d,%d) %d\n",
-                            minmea_rescale(&frame.latitude, 1000),
-                            minmea_rescale(&frame.longitude, 1000),
-                            minmea_rescale(&frame.speed, 1000));
-                    printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
-                            minmea_tocoord(&frame.latitude),
-                            minmea_tocoord(&frame.longitude),
-                            minmea_tofloat(&frame.speed));
+/*                     printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
+                            minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); */
+                    gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
+                    gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
+                    gps->speed = minmea_tofloat(&frame.speed);
                 }
                 else {
                     printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
@@ -175,46 +168,35 @@ int get_gps_coordinate(Coordinate *gps_coord)
             case MINMEA_SENTENCE_GGA: {
                 struct minmea_sentence_gga frame;
                 if (minmea_parse_gga(&frame, line)) {
-                    printf(INDENT_SPACES "$xxGGA: fix quality: %d\n", frame.fix_quality);
+                    //printf(INDENT_SPACES "$xxGGA: fix quality: %d\n", frame.fix_quality);
+                    gps->fix_quality = frame.fix_quality;
                 }
                 else {
                     printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
                 }
             } break;
 
-            case MINMEA_SENTENCE_GST: {
+/*             case MINMEA_SENTENCE_GST: {
                 struct minmea_sentence_gst frame;
                 if (minmea_parse_gst(&frame, line)) {
-                    printf(INDENT_SPACES "$xxGST: raw latitude,longitude and altitude error deviation: (%d/%d,%d/%d,%d/%d)\n",
-                            frame.latitude_error_deviation.value, frame.latitude_error_deviation.scale,
-                            frame.longitude_error_deviation.value, frame.longitude_error_deviation.scale,
-                            frame.altitude_error_deviation.value, frame.altitude_error_deviation.scale);
-                    printf(INDENT_SPACES "$xxGST fixed point latitude,longitude and altitude error deviation"
-                           " scaled to one decimal place: (%d,%d,%d)\n",
-                            minmea_rescale(&frame.latitude_error_deviation, 10),
-                            minmea_rescale(&frame.longitude_error_deviation, 10),
-                            minmea_rescale(&frame.altitude_error_deviation, 10));
                     printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
-                            minmea_tofloat(&frame.latitude_error_deviation),
-                            minmea_tofloat(&frame.longitude_error_deviation),
+                            minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
                             minmea_tofloat(&frame.altitude_error_deviation));
                 }
                 else {
                     printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
                 }
-            } break;
+            } break; */
 
             case MINMEA_SENTENCE_GSV: {
                 struct minmea_sentence_gsv frame;
                 if (minmea_parse_gsv(&frame, line)) {
-                    printf(INDENT_SPACES "$xxGSV: message %d of %d\n", frame.msg_nr, frame.total_msgs);
+/*                     printf(INDENT_SPACES "$xxGSV: message %d of %d\n", frame.msg_nr, frame.total_msgs);
                     printf(INDENT_SPACES "$xxGSV: satellites in view: %d\n", frame.total_sats);
                     for (int i = 0; i < 4; i++)
-                        printf(INDENT_SPACES "$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d dbm\n",
-                            frame.sats[i].nr,
-                            frame.sats[i].elevation,
-                            frame.sats[i].azimuth,
-                            frame.sats[i].snr);
+                        printf(INDENT_SPACES "$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d dbm\n", frame.sats[i].nr,
+                            frame.sats[i].elevation, frame.sats[i].azimuth, frame.sats[i].snr); */
+                    gps->sat_in_view = frame.total_sats;
                 }
                 else {
                     printf(INDENT_SPACES "$xxGSV sentence is not parsed\n");
@@ -224,14 +206,13 @@ int get_gps_coordinate(Coordinate *gps_coord)
             case MINMEA_SENTENCE_VTG: {
                struct minmea_sentence_vtg frame;
                if (minmea_parse_vtg(&frame, line)) {
-                    printf(INDENT_SPACES "$xxVTG: true track degrees = %f\n",
-                           minmea_tofloat(&frame.true_track_degrees));
-                    printf(INDENT_SPACES "        magnetic track degrees = %f\n",
-                           minmea_tofloat(&frame.magnetic_track_degrees));
-                    printf(INDENT_SPACES "        speed knots = %f\n",
-                            minmea_tofloat(&frame.speed_knots));
-                    printf(INDENT_SPACES "        speed kph = %f\n",
-                            minmea_tofloat(&frame.speed_kph));
+/*                     printf(INDENT_SPACES "$xxVTG: true track degrees = %f\n", minmea_tofloat(&frame.true_track_degrees));
+                    printf(INDENT_SPACES "        magnetic track degrees = %f\n", minmea_tofloat(&frame.magnetic_track_degrees));
+                    printf(INDENT_SPACES "        speed knots = %f\n", minmea_tofloat(&frame.speed_knots));
+                    printf(INDENT_SPACES "        speed kph = %f\n", minmea_tofloat(&frame.speed_kph)); */
+                    gps->true_track = minmea_tofloat(&frame.true_track_degrees);
+                    gps->mag_track = minmea_tofloat(&frame.magnetic_track_degrees);
+                    gps->speed_kph = minmea_tofloat(&frame.speed_kph);
                }
                else {
                     printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");
@@ -241,15 +222,8 @@ int get_gps_coordinate(Coordinate *gps_coord)
             case MINMEA_SENTENCE_ZDA: {
                 struct minmea_sentence_zda frame;
                 if (minmea_parse_zda(&frame, line)) {
-                    printf(INDENT_SPACES "$xxZDA: %d:%d:%d %02d.%02d.%d UTC%+03d:%02d\n",
-                           frame.time.hours,
-                           frame.time.minutes,
-                           frame.time.seconds,
-                           frame.date.day,
-                           frame.date.month,
-                           frame.date.year,
-                           frame.hour_offset,
-                           frame.minute_offset);
+/*                     printf(INDENT_SPACES "$xxZDA: %d:%d:%d %02d.%02d.%d UTC%+03d:%02d\n", frame.time.hours, frame.time.minutes, 
+                            frame.time.seconds, frame.date.day, frame.date.month, frame.date.year, frame.hour_offset, frame.minute_offset); */
                 }
                 else {
                     printf(INDENT_SPACES "$xxZDA sentence is not parsed\n");
