@@ -161,7 +161,8 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->speed = minmea_tofloat(&frame.speed);
                 }
                 else {
-                    printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
+                    gps->gps_coord.latitude = gps->gps_coord.longitude = gps->speed = 0.0;
                 }
             } break;
 
@@ -172,21 +173,22 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->fix_quality = frame.fix_quality;
                 }
                 else {
-                    printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
+                    gps->fix_quality = 0;
                 }
             } break;
 
-/*             case MINMEA_SENTENCE_GST: {
+             case MINMEA_SENTENCE_GST: {
                 struct minmea_sentence_gst frame;
-                if (minmea_parse_gst(&frame, line)) {
+/*                 if (minmea_parse_gst(&frame, line)) {
                     printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
                             minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
                             minmea_tofloat(&frame.altitude_error_deviation));
                 }
                 else {
                     printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
-                }
-            } break; */
+                } */
+            } break;
 
             case MINMEA_SENTENCE_GSV: {
                 struct minmea_sentence_gsv frame;
@@ -199,7 +201,8 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->sat_in_view = frame.total_sats;
                 }
                 else {
-                    printf(INDENT_SPACES "$xxGSV sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxGSV sentence is not parsed\n");
+                    gps->sat_in_view = 0;
                 }
             } break;
 
@@ -215,7 +218,8 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->speed_kph = minmea_tofloat(&frame.speed_kph);
                }
                else {
-                    printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");
+                    gps->true_track = gps->mag_track = gps->speed_kph = 0.0;
                }
             } break;
 
@@ -226,16 +230,16 @@ int get_gps_coordinate(GPS_data *gps)
                             frame.time.seconds, frame.date.day, frame.date.month, frame.date.year, frame.hour_offset, frame.minute_offset); */
                 }
                 else {
-                    printf(INDENT_SPACES "$xxZDA sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxZDA sentence is not parsed\n");
                 }
             } break;
 
             case MINMEA_INVALID: {
-                printf(INDENT_SPACES "$xxxxx sentence is not valid\n");
+                //printf(INDENT_SPACES "$xxxxx sentence is not valid\n");
             } break;
 
             default: {
-                printf(INDENT_SPACES "$xxxxx sentence is not parsed\n");
+                //printf(INDENT_SPACES "$xxxxx sentence is not parsed\n");
             } break;
         }
     }
