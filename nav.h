@@ -8,9 +8,13 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "minmea.h"
+
 //#define TERRITORY_CODE 19  // FID 523
 #define DEG2RAD 0.0174532925199 // Pi/180
 #define EARTH_RADIUS 6371 // km
+
+#define INDENT_SPACES "  "
 
 typedef struct Coordinate
 {
@@ -45,5 +49,4 @@ int get_gps_coordinate(Coordinate *);
 double goto_waypoint(Coordinate *, Waypoint *);
 
 //int check_safety_zone ();
-
 

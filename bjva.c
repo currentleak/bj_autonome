@@ -4,8 +4,9 @@
 #include <time.h>
 
 #include "nav.c"
-//#include "bbb_rc.c"
 //#include "nav.h"
+#include "minmea.c"
+//#include "bbb_rc.c"
 //#include "bbb_rc.h"
 
 int main()
