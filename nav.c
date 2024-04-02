@@ -155,8 +155,8 @@ int get_gps_coordinate(GPS_data *gps)
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
                 if (minmea_parse_rmc(&frame, line)) {
-/*                     printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
-                            minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); */
+                     printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
+                            minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
                     gps->speed = minmea_tofloat(&frame.speed);
