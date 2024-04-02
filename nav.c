@@ -13,7 +13,7 @@ Waypoint_list *read_waypoint_file()
     double lat, lon;
     if ((fptr = fopen("waypoint_list.dat","r")) == NULL)
     {
-        printf("\nError reading waypoints list file");                
+        printf("\nError reading waypoints list file\n");                
         return NULL;
     }
     // init waypoint list and create first waypoint
@@ -22,7 +22,7 @@ Waypoint_list *read_waypoint_file()
     Coordinate (*coord) = malloc(sizeof(*coord));
     if(wp_list==NULL || wp==NULL || coord==NULL)
     {
-        printf("\nError allocating memory"); 
+        printf("\nError allocating memory\n"); 
         fclose(fptr);
         return NULL;
     }
@@ -42,7 +42,7 @@ Waypoint_list *read_waypoint_file()
     } 
     else
     {
-        printf("\nError waypoints list file is empty"); 
+        printf("\nError waypoints list file is empty\n"); 
         fclose(fptr);
         return NULL;
     }
@@ -55,7 +55,7 @@ Waypoint_list *read_waypoint_file()
         coord = malloc(sizeof(*coord));
         if(wp==NULL || coord==NULL)
         {
-            printf("\nError allocating memory"); 
+            printf("\nError allocating memory\n"); 
             fclose(fptr);
             return NULL;
         }
@@ -79,7 +79,7 @@ Waypoint_list *read_waypoint_file()
     wp->target_radius = 0.01; // 10m, destination waypoint has a closer target radius
     if(wp_list->waypoint_qty < 2)
     {
-        printf("\nWaypoint list should contain at least 2 coordinates to make a passage");
+        printf("\nWaypoint list should contain at least 2 coordinates to make a passage\n");
         return NULL;
     }
     return wp_list;
@@ -144,7 +144,7 @@ int get_gps_coordinate(GPS_data *gps)
     FILE *port_com = fopen("/dev/ttyO2", "r"); // Beagle Blue : ttyO1=Uart1(3.3V), ttyO2=Uart2(GPS 5V)
     if(port_com == NULL)  
     {
-        printf("\nError opening GPS serial port!");                
+        printf("\nError opening GPS serial port!\n");     
         return 1;
     }
 
@@ -155,8 +155,8 @@ int get_gps_coordinate(GPS_data *gps)
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
                 if (minmea_parse_rmc(&frame, line)) {
-                     printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
-                            minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
+                    // printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
+                    //        minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
                     gps->speed = minmea_tofloat(&frame.speed);

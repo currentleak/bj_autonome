@@ -61,15 +61,14 @@ int main()
 	time_passage = time(NULL);
 	
 	printf("\nStart passage... time= %ld\n", time_passage);
-	fflush(stdout);
 	do
 	{
 		get_gps_coordinate(&gps);
 		distance_to_target = goto_waypoint(&gps.gps_coord, target_wp);
 		bearing_to_target = calculate_bearing(&gps.gps_coord, target_wp->wp_coordinate);
-		printf("\nNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf",target_wp->identification, distance_to_target, bearing_to_target);
+		printf("\rNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf",target_wp->identification, distance_to_target, bearing_to_target);
 		fflush(stdout);
-		if(distance_to_target < target_wp->target_radius)
+		if(!isnan(distance_to_target) && distance_to_target < target_wp->target_radius)
 		{
 			target_wp = target_wp->next_waypoint;
 			printf("\n");
