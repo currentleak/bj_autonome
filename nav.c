@@ -13,7 +13,7 @@ Waypoint_list *read_waypoint_file()
     double lat, lon;
     if ((fptr = fopen("waypoint_list.dat","r")) == NULL)
     {
-        printf("\nError reading waypoints list file\n");                
+        printf("\nError reading waypoints list file\n");
         return NULL;
     }
     // init waypoint list and create first waypoint
@@ -22,7 +22,7 @@ Waypoint_list *read_waypoint_file()
     Coordinate (*coord) = malloc(sizeof(*coord));
     if(wp_list==NULL || wp==NULL || coord==NULL)
     {
-        printf("\nError allocating memory\n"); 
+        printf("\nError allocating memory\n");
         fclose(fptr);
         return NULL;
     }
@@ -68,10 +68,10 @@ Waypoint_list *read_waypoint_file()
         wp->next_waypoint = NULL;
         wp->distance_to_next_wp = 0.0;
         wp->bearing_to_next_wp = 0.0;
-        wp_list->destination_waypoint = wp;    
-        wp->prev_waypoint->next_waypoint = wp; 
+        wp_list->destination_waypoint = wp;
+        wp->prev_waypoint->next_waypoint = wp;
         wp->prev_waypoint->distance_to_next_wp = calculate_distance(wp->prev_waypoint->wp_coordinate, wp->wp_coordinate);
-        wp->prev_waypoint->bearing_to_next_wp =  calculate_bearing(wp->prev_waypoint->wp_coordinate, wp->wp_coordinate);  
+        wp->prev_waypoint->bearing_to_next_wp =  calculate_bearing(wp->prev_waypoint->wp_coordinate, wp->wp_coordinate);
         wp_list->waypoint_qty++;
         i++;
     }
@@ -90,7 +90,7 @@ double calculate_distance(Coordinate *c1, Coordinate *c2)
     double term1 = pow(sin((DEG2RAD*(c2->latitude - c1->latitude))/ 2), 2);
     double term2 = cos(DEG2RAD*c1->latitude) * cos(DEG2RAD*c2->latitude);
     double term3 = pow(sin((DEG2RAD*(c2->longitude - c1->longitude))/ 2), 2);
-    return 2*EARTH_RADIUS * asin(sqrt(term1 + (term2 * term3))); 
+    return 2*EARTH_RADIUS * asin(sqrt(term1 + (term2 * term3)));
 /*     double dlat = DEG2RAD*(c2->latitude - c1->latitude);
     double dlon = DEG2RAD*(c2->longitude - c1->longitude);
     double a = sin(dlat / 2) * sin(dlat / 2) + cos(DEG2RAD*c1->latitude) * cos(DEG2RAD*c2->latitude) * sin(dlon / 2) * sin(dlon / 2);
@@ -99,7 +99,7 @@ double calculate_distance(Coordinate *c1, Coordinate *c2)
 }
 
 // Function to calculate initial bearing between two points
-double calculate_bearing(Coordinate *c1, Coordinate *c2) 
+double calculate_bearing(Coordinate *c1, Coordinate *c2)
 {
     double delta_lon = DEG2RAD*(c2->longitude - c1->longitude);
     double x = cos(DEG2RAD*c2->latitude) * sin(delta_lon);
@@ -132,16 +132,16 @@ int get_gps_coordinate(GPS_data *gps)
     //todo: check if gps is locked 
     
     //data for simulation
-    static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
+/*    static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
     46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
     static int i=0;
     gps->gps_coord.latitude = c[i];
     gps->gps_coord.longitude = c[i+1];
     i=i+2;
-    if(i==30) i=0;
+    if(i==30) i=0;*/
 
     char line[MINMEA_MAX_SENTENCE_LENGTH];
-    FILE *port_com = fopen("/dev/ttyO2", "r"); // Beagle Blue : ttyO1=Uart1(3.3V), ttyO2=Uart2(GPS 5V)
+    FILE *port_com = fopen("/dev/ttyO1", "r"); // Beagle Blue : ttyO1=Uart1(3.3V), ttyO2=Uart2(GPS 5V)
     if(port_com == NULL)  
     {
         printf("\nError opening GPS serial port!\n");     
@@ -155,7 +155,7 @@ int get_gps_coordinate(GPS_data *gps)
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
                 if (minmea_parse_rmc(&frame, line)) {
-                    // printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
+                    //printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
                     //        minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
@@ -183,14 +183,14 @@ int get_gps_coordinate(GPS_data *gps)
 
              case MINMEA_SENTENCE_GST: {
                 struct minmea_sentence_gst frame;
-/*                 if (minmea_parse_gst(&frame, line)) {
-                    printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
-                            minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
+                 if (minmea_parse_gst(&frame, line)) {
+//                    printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
+//                            minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
                             minmea_tofloat(&frame.altitude_error_deviation));
                 }
                 else {
                     printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
-                } */
+                }
             } break;
 
             case MINMEA_SENTENCE_GSV: {

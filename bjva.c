@@ -53,6 +53,7 @@ int main()
 		printf("\rGPS Qty:%3d, Fix Qual:%2d, ", gps.sat_in_view, gps.fix_quality);
 		distance_to_target = calculate_distance(&gps.gps_coord , target_wp->wp_coordinate);
 		printf("Distance to starting line = %8.3lf", distance_to_target);
+		printf("lat: %lf, lon:%lf", gps.gps_coord.latitude, gps.gps_coord.longitude);
 		fflush(stdout);
 		sleep(1);
 	} while (isnan(distance_to_target) || distance_to_target > 0.01);
