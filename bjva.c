@@ -6,6 +6,7 @@
 #include "nav.c"
 //#include "nav.h"
 #include "minmea.c"
+//#include "minmea.h"
 //#include "bbb_rc.c"
 //#include "bbb_rc.h"
 
@@ -21,12 +22,12 @@ int main()
 	double distance_to_target = 0.0;
 	double bearing_to_target = 0.0;
 	time_t time_passage;
-	GPS_data gps;
+	GPS_data gps = {0.0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false};
 
 	if(waypoint_passage==NULL)
 	{
 		printf("\nError no passage defined");
-		return 1;
+		return -1;
 	}
 	else
 	{
@@ -50,12 +51,13 @@ int main()
 	do
 	{
 		get_gps_coordinate(&gps);
-		printf("\rGPS Qty:%3d, Fix Qual:%2d, ", gps.sat_in_view, gps.fix_quality);
 		distance_to_target = calculate_distance(&gps.gps_coord , target_wp->wp_coordinate);
-		printf("Distance to starting line = %8.3lf", distance_to_target);
-		printf("lat: %lf, lon:%lf", gps.gps_coord.latitude, gps.gps_coord.longitude);
+		printf("\rGPS Qty:%02d, Fix Qual:%1d, ", gps.sat_in_view, gps.fix_quality);
+		printf("Dist. to start= %8.3lf", distance_to_target);
+		printf("   lat: %10.6lf, lon:%10.6lf", gps.gps_coord.latitude, gps.gps_coord.longitude);
+		printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps.hour, gps.minute, gps.second, gps.day, gps.month, gps.year);
 		fflush(stdout);
-		sleep(1);
+//		sleep(1);
 	} while (isnan(distance_to_target) || distance_to_target > 0.01);
 
 	target_wp = target_wp->next_waypoint;

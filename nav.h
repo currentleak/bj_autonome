@@ -42,18 +42,18 @@ typedef struct Waypoint_list // waypoint list for passage
 
 typedef struct GPS_data
 {
-    Coordinate gps_coord;
     float speed;
     int fix_quality;
     int sat_in_view;
-    float true_track, mag_track;
+    float true_track, declin_mag;
     float speed_kph;
     int hour, minute, second, day, month, year;
     int h_offset, m_offset;
-
+    bool valid;
+    Coordinate gps_coord;
 }GPS_data;
 
-Waypoint_list *read_waypoint_file();
+Waypoint_list *read_waypoint_file(void);
 void destroy_waypoint_list(Waypoint_list *);
 double calculate_distance(Coordinate *, Coordinate *);
 double calculate_bearing(Coordinate *, Coordinate *);

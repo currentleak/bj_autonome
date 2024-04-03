@@ -145,26 +145,41 @@ int get_gps_coordinate(GPS_data *gps)
     if(port_com == NULL)  
     {
         printf("\nError opening GPS serial port!\n");     
-        return 1;
+        return -1;
     }
 
-    int data_valid=0;
-    while (fgets(line, sizeof(line), port_com) != NULL && data_valid < 4) {
+    gps->valid = false;
+    fflush(port_com);
+    while(fgets(line, sizeof(line), port_com) != NULL && !gps->valid)  // TODO : trouver une facon qui ne lock pas en cas de perte gps
+    {
         //printf("%s", line);
         switch (minmea_sentence_id(line, false)) {
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
+                gps->valid = true;
                 if (minmea_parse_rmc(&frame, line)) {
                     //printf(INDENT_SPACES "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\n",
                     //        minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
-                    gps->gps_coord.longitude = minmea_tocoord(&frame.latitude);
+                    gps->gps_coord.longitude = minmea_tocoord(&frame.longitude);
                     gps->speed = minmea_tofloat(&frame.speed);
-                    data_valid++;
+
+                    gps->hour = frame.time.hours;
+                    gps->minute = frame.time.minutes;
+                    gps->second = frame.time.seconds;
+                    gps->day = frame.date.day;
+                    gps->month = frame.date.month;
+                    gps->year = frame.date.year;
+
+                    gps->true_track = minmea_tofloat(&frame.course);
+                    gps->speed_kph = minmea_tofloat(&frame.speed) * 1,852;
+                    gps->declin_mag = minmea_tofloat(&frame.variation);
+                    gps->valid = frame.valid;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
                     gps->gps_coord.latitude = gps->gps_coord.longitude = gps->speed = 0.0;
+                    gps->valid = false;
                 }
             } break;
 
@@ -172,8 +187,7 @@ int get_gps_coordinate(GPS_data *gps)
                 struct minmea_sentence_gga frame;
                 if (minmea_parse_gga(&frame, line)) {
                     //printf(INDENT_SPACES "$xxGGA: fix quality: %d\n", frame.fix_quality);
-                    gps->fix_quality = frame.fix_quality;
-                    data_valid++;
+                    gps->fix_quality = frame.fix_quality;  // 0 = non valide, 1 = Fix GPS, 2 = Fix DGPS
                 }
                 else {
                     //printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
@@ -184,25 +198,24 @@ int get_gps_coordinate(GPS_data *gps)
              case MINMEA_SENTENCE_GST: {
                 struct minmea_sentence_gst frame;
                  if (minmea_parse_gst(&frame, line)) {
-//                    printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
-//                            minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
-                            minmea_tofloat(&frame.altitude_error_deviation));
+                    //printf(INDENT_SPACES "$xxGST floating point degree latitude, longitude and altitude error deviation: (%f,%f,%f)",
+                    //   minmea_tofloat(&frame.latitude_error_deviation), minmea_tofloat(&frame.longitude_error_deviation),
+                    //   minmea_tofloat(&frame.altitude_error_deviation));
                 }
                 else {
-                    printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
+                    //printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
                 }
             } break;
 
             case MINMEA_SENTENCE_GSV: {
                 struct minmea_sentence_gsv frame;
                 if (minmea_parse_gsv(&frame, line)) {
-/*                     printf(INDENT_SPACES "$xxGSV: message %d of %d\n", frame.msg_nr, frame.total_msgs);
+                    /*printf(INDENT_SPACES "$xxGSV: message %d of %d\n", frame.msg_nr, frame.total_msgs);
                     printf(INDENT_SPACES "$xxGSV: satellites in view: %d\n", frame.total_sats);
                     for (int i = 0; i < 4; i++)
                         printf(INDENT_SPACES "$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d dbm\n", frame.sats[i].nr,
                             frame.sats[i].elevation, frame.sats[i].azimuth, frame.sats[i].snr); */
                     gps->sat_in_view = frame.total_sats;
-                    data_valid++;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxGSV sentence is not parsed\n");
@@ -213,26 +226,21 @@ int get_gps_coordinate(GPS_data *gps)
             case MINMEA_SENTENCE_VTG: {
                struct minmea_sentence_vtg frame;
                if (minmea_parse_vtg(&frame, line)) {
-/*                     printf(INDENT_SPACES "$xxVTG: true track degrees = %f\n", minmea_tofloat(&frame.true_track_degrees));
-                    printf(INDENT_SPACES "        magnetic track degrees = %f\n", minmea_tofloat(&frame.magnetic_track_degrees));
-                    printf(INDENT_SPACES "        speed knots = %f\n", minmea_tofloat(&frame.speed_knots));
-                    printf(INDENT_SPACES "        speed kph = %f\n", minmea_tofloat(&frame.speed_kph)); */
-                    gps->true_track = minmea_tofloat(&frame.true_track_degrees);
-                    gps->mag_track = minmea_tofloat(&frame.magnetic_track_degrees);
-                    gps->speed_kph = minmea_tofloat(&frame.speed_kph);
-                    data_valid++;
+                    //printf(INDENT_SPACES "$xxVTG: true track degrees = %f\n", minmea_tofloat(&frame.true_track_degrees));
+                    //printf(INDENT_SPACES "        magnetic track degrees = %f\n", minmea_tofloat(&frame.magnetic_track_degrees));
+                    //printf(INDENT_SPACES "        speed knots = %f\n", minmea_tofloat(&frame.speed_knots));
+                    //printf(INDENT_SPACES "        speed kph = %f\n", minmea_tofloat(&frame.speed_kph)); 
                }
                else {
                     //printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");
-                    gps->true_track = gps->mag_track = gps->speed_kph = 0.0;
                }
             } break;
 
             case MINMEA_SENTENCE_ZDA: {
                 struct minmea_sentence_zda frame;
                 if (minmea_parse_zda(&frame, line)) {
-/*                     printf(INDENT_SPACES "$xxZDA: %d:%d:%d %02d.%02d.%d UTC%+03d:%02d\n", frame.time.hours, frame.time.minutes, 
-                            frame.time.seconds, frame.date.day, frame.date.month, frame.date.year, frame.hour_offset, frame.minute_offset); */
+                    //printf(INDENT_SPACES "$xxZDA: %d:%d:%d %02d.%02d.%d UTC%+03d:%02d\n", frame.time.hours, frame.time.minutes, 
+                    //        frame.time.seconds, frame.date.day, frame.date.month, frame.date.year, frame.hour_offset, frame.minute_offset); 
                 }
                 else {
                     //printf(INDENT_SPACES "$xxZDA sentence is not parsed\n");
@@ -249,6 +257,7 @@ int get_gps_coordinate(GPS_data *gps)
         }
     }
 
+    fclose(port_com);
     return 0;
 }
 
