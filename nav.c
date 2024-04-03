@@ -151,6 +151,10 @@ int get_gps_coordinate(GPS_data *gps)
     gps->valid = false;
     fflush(port_com);
     while(fgets(line, sizeof(line), port_com) != NULL && !gps->valid)  // TODO : trouver une facon qui ne lock pas en cas de perte gps
+<<<<<<< Updated upstream
+=======
+    //if
+>>>>>>> Stashed changes
     {
         //printf("%s", line);
         switch (minmea_sentence_id(line, false)) {
