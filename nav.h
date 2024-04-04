@@ -42,7 +42,6 @@ typedef struct Waypoint_list // waypoint list for passage
 
 typedef struct GPS_data
 {
-    float speed;
     int fix_quality;
     int sat_in_view;
     float true_track, declin_mag;

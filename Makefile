@@ -1,6 +1,6 @@
 # This is a general use makefile for librobotcontrol projects written in C.
 # Just change the target name to match your main source code filename.
-TARGET = bbb_rc 
+TARGET = bjva 
 #bjva
 
 # compiler and linker binaries
@@ -13,7 +13,7 @@ CFLAGS		:= -g -c -Wall
 LDFLAGS		:= -pthread -lm -lrt -l:librobotcontrol.so.1
 
 # SOURCES		:= $(wildcard *.c)
-SOURCES                := bbb_rc.c
+SOURCES                := bjva.c
 INCLUDES	:= $(wildcard *.h)
 OBJECTS		:= $(SOURCES:$%.c=$%.o)
 

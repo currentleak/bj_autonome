@@ -129,8 +129,6 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 
 int get_gps_coordinate(GPS_data *gps)
 {
-    //todo: check if gps is locked 
-    
     //data for simulation
 /*    static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
     46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
@@ -150,13 +148,11 @@ int get_gps_coordinate(GPS_data *gps)
 
     gps->valid = false;
     fflush(port_com);
-    while(fgets(line, sizeof(line), port_com) != NULL && !gps->valid)  // TODO : trouver une facon qui ne lock pas en cas de perte gps
-<<<<<<< Updated upstream
-=======
-    //if
->>>>>>> Stashed changes
+    int timeout = 0;
+    while(fgets(line, sizeof(line), port_com) != NULL && !gps->valid && timeout < 100)
     {
         //printf("%s", line);
+        timeout ++;
         switch (minmea_sentence_id(line, false)) {
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
@@ -166,7 +162,6 @@ int get_gps_coordinate(GPS_data *gps)
                     //        minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.longitude);
-                    gps->speed = minmea_tofloat(&frame.speed);
 
                     gps->hour = frame.time.hours;
                     gps->minute = frame.time.minutes;
@@ -176,13 +171,13 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->year = frame.date.year;
 
                     gps->true_track = minmea_tofloat(&frame.course);
-                    gps->speed_kph = minmea_tofloat(&frame.speed) * 1,852;
+                    gps->speed_kph = minmea_tofloat(&frame.speed) * 1.852;
                     gps->declin_mag = minmea_tofloat(&frame.variation);
                     gps->valid = frame.valid;
                 }
                 else {
                     //printf(INDENT_SPACES "$xxRMC sentence is not parsed\n");
-                    gps->gps_coord.latitude = gps->gps_coord.longitude = gps->speed = 0.0;
+                    gps->gps_coord.latitude = gps->gps_coord.longitude = gps->speed_kph = 0.0;
                     gps->valid = false;
                 }
             } break;

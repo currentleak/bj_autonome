@@ -26,8 +26,7 @@ double bearing_tolerance = 3.0;
  *
  * @return     0 during normal operation, -1 on error
  */
-int main()
-//int init_bbb_rc()
+int init_bbb_rc()
 {
 	// make sure another instance isn't running
 	// if return value is -3 then a background process is running with

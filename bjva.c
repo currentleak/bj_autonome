@@ -7,22 +7,24 @@
 //#include "nav.h"
 #include "minmea.c"
 //#include "minmea.h"
-//#include "bbb_rc.c"
+#include "bbb_rc.c"
 //#include "bbb_rc.h"
 
 int main()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
 
-	// Init GPS
 	// Init sensors : button, ADC, MPU and servos
+
+	init_bbb_rc();
+
 
 	Waypoint_list *waypoint_passage = read_waypoint_file();
 	Waypoint *target_wp;
 	double distance_to_target = 0.0;
 	double bearing_to_target = 0.0;
 	time_t time_passage;
-	GPS_data gps = {0.0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false};
+	GPS_data gps = {0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false};
 
 	if(waypoint_passage==NULL)
 	{
@@ -56,6 +58,7 @@ int main()
 		printf("Dist. to start= %8.3lf", distance_to_target);
 		printf("   lat: %10.6lf, lon:%10.6lf", gps.gps_coord.latitude, gps.gps_coord.longitude);
 		printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps.hour, gps.minute, gps.second, gps.day, gps.month, gps.year);
+		printf(" course: %5.1f, speed:%5.2f", gps.true_track, gps.speed_kph);
 		fflush(stdout);
 //		sleep(1);
 	} while (isnan(distance_to_target) || distance_to_target > 0.01);

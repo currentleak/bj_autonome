@@ -27,6 +27,8 @@
 
 // function declarations
 int init_bbb_rc();
+int steer_to_bearing();
+
 void on_pause_press();
 void on_pause_release();
 
