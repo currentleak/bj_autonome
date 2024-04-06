@@ -37,6 +37,7 @@ typedef struct Waypoint_list // waypoint list for passage
 {
     Waypoint *first_waypoint;
     Waypoint *destination_waypoint;
+    Waypoint *target_waypoint;
     int waypoint_qty;
 }Waypoint_list;
 
@@ -58,7 +59,7 @@ double calculate_distance(Coordinate *, Coordinate *);
 double calculate_bearing(Coordinate *, Coordinate *);
 
 int get_gps_coordinate(GPS_data *);
-double goto_waypoint(Coordinate *, Waypoint *);
+double goto_next_waypoint(Waypoint_list *, GPS_data *);
 
 //int check_safety_zone ();
 

@@ -7,7 +7,6 @@
 #include "bbb_rc.h"
 
 // Global Variables
-uint64_t epoch_start = 0;
 static rc_mpu_data_t data;
 double servo_rudder_pos =0;
 double direction_rudder =1;
@@ -97,7 +96,6 @@ int init_bbb_rc()
 	// make our own safely.
 	rc_make_pid_file();
 	
-	epoch_start = rc_nanos_since_epoch();
 	print_header();
 
 	rc_set_state(RUNNING);
@@ -144,7 +142,6 @@ int init_bbb_rc()
 	rc_servo_cleanup();
 	//rc_dsm_cleanup();
 	printf("\n\n");
-	printf("total time: %llu\n", rc_nanos_since_epoch()-epoch_start);
 	fflush(stdout);
 	rc_button_cleanup();	// stop button handlers
 	rc_remove_pid_file();	// remove pid file LAST
@@ -170,8 +167,6 @@ void on_pause_press()
 	int i;
 	const int samples = 100; // check for release 100 times in this period
 	const int us_wait = 2000000; // 2 seconds
-
-	printf("time: %llu\n", rc_nanos_since_epoch()-epoch_start);
 	
 	// now keep checking to see if the button is still held down
 	for(i=0;i<samples;i++){
@@ -185,12 +180,11 @@ void on_pause_press()
 
 void print_header()
 {
-	printf("\nProjet BJ - Voilier Miniature Autonome\n");
 	printf("\nPress and release pause button to turn green LED on and off");
 	printf("\nhold pause button down for 2 seconds to exit");
-	printf("\ncalibrated GYRO-MAG-ACCEL: %d, %d, %d", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
 	printf("\nif Mag doesn't work, then recalibrate it");
-	printf("\n\nstart time: %llu", epoch_start);
+	printf("\ncalibrated GYRO-MAG-ACCEL: %d, %d, %d", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
+
 	// Header for DMP data
 	printf("\n");
 	printf(" Raw Compass |");

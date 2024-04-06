@@ -82,6 +82,23 @@ Waypoint_list *read_waypoint_file()
         printf("\nWaypoint list should contain at least 2 coordinates to make a passage\n");
         return NULL;
     }
+    
+    // Print the Waypoint List    
+	printf("\nwaypoint qty=%d", wp_list->waypoint_qty-1); //excluding the starting waypoint
+	printf("\nWP#   Latitude   Longitude  Next WP: distance, bearing");
+	wp_list->target_waypoint = wp_list->first_waypoint;
+    double distance_to_target = 0.0;
+	while (wp_list->target_waypoint != NULL)
+    {
+		printf("\n%3d  ", wp_list->target_waypoint->identification);
+       	printf(" %lf  %lf   ", wp_list->target_waypoint->wp_coordinate->latitude, wp_list->target_waypoint->wp_coordinate->longitude);
+		printf("     %8.3lf, %5.1lf", wp_list->target_waypoint->distance_to_next_wp, wp_list->target_waypoint->bearing_to_next_wp);
+		distance_to_target = distance_to_target + wp_list->target_waypoint->distance_to_next_wp;
+       	wp_list->target_waypoint = wp_list->target_waypoint->next_waypoint;
+    }
+    printf("\nDistance totale= %8.3lf\n", distance_to_target);
+	
+    wp_list->target_waypoint = wp_list->first_waypoint; // GPS coord Starting point
     return wp_list;
 }
 
@@ -260,9 +277,48 @@ int get_gps_coordinate(GPS_data *gps)
     return 0;
 }
 
-double goto_waypoint(Coordinate *coord, Waypoint *wp)
+double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
 {
     //todo: PID goto wp
 
-    return calculate_distance(coord, wp->wp_coordinate);
+    double dist;
+    dist = calculate_distance(wp_list->target_waypoint->wp_coordinate, gps->gps_coord);
+    if(isnan(dist))
+    {
+         return 9999.9;
+    }
+
+    if(wp_list->target_waypoint == wp_list->first_waypoint)
+    {
+        printf("\nWaiting to be at starting line... \n");
+    }
+
+    printf("\rGPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
+ 	//printf("Distance todo= %8.3lf", calculate_distance(&gps->gps_coord, wp_list->target_waypoint->wp_coordinate));
+/*	printf("   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
+	printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
+	printf(" course: %5.1f, speed:%5.2f", gps.true_track, gps.speed_kph); */
+	fflush(stdout);
+    
+	
+/* 	printf("\nStart passage... time= %ld\n", time_passage);
+	do
+	{
+		get_gps_coordinate(&gps);
+		distance_to_target = goto_waypoint(&gps.gps_coord, waypoint_passage->target_waypoint);
+		bearing_to_target = calculate_bearing(&gps.gps_coord, waypoint_passage->target_waypoint->wp_coordinate);
+		printf("\rNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf", waypoint_passage->target_waypoint->identification, distance_to_target, bearing_to_target);
+		fflush(stdout);
+		if(!isnan(distance_to_target) && distance_to_target < waypoint_passage->target_waypoint->target_radius)
+		{
+			waypoint_passage->target_waypoint = waypoint_passage->target_waypoint->next_waypoint;
+			printf("\n");
+		}
+		sleep(1);
+	}
+	while(waypoint_passage->target_waypoint != waypoint_passage->destination_waypoint);
+ */
+
+    printf("\nd=%lf",dist);
+    return dist;
 }
