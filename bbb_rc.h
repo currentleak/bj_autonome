@@ -32,8 +32,8 @@ int steer_to_bearing();
 void on_pause_press();
 void on_pause_release();
 
-static void print_header();
-static void print_MPU_data();
+void print_header();
+void print_MPU_data();
 
 
 

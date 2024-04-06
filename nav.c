@@ -79,11 +79,19 @@ Waypoint_list *read_waypoint_file()
     wp->target_radius = 0.01; // 10m, destination waypoint has a closer target radius
     if(wp_list->waypoint_qty < 2)
     {
-        printf("\nWaypoint list should contain at least 2 coordinates to make a passage\n");
+        printf("\nError Waypoint list should contain at least 2 coordinates\n");
         return NULL;
     }
-    
-    // Print the Waypoint List    
+    return wp_list;
+}
+
+int print_WP_list(Waypoint_list *wp_list)
+{
+    // Print the Waypoint List   
+    if(wp_list==NULL)
+    {
+        return -1;
+    } 
 	printf("\nwaypoint qty=%d", wp_list->waypoint_qty-1); //excluding the starting waypoint
 	printf("\nWP#   Latitude   Longitude  Next WP: distance, bearing");
 	wp_list->target_waypoint = wp_list->first_waypoint;
@@ -97,10 +105,10 @@ Waypoint_list *read_waypoint_file()
        	wp_list->target_waypoint = wp_list->target_waypoint->next_waypoint;
     }
     printf("\nDistance totale= %8.3lf\n", distance_to_target);
-	
-    wp_list->target_waypoint = wp_list->first_waypoint; // GPS coord Starting point
-    return wp_list;
+    fflush(stdout);
+    return 0;
 }
+
 
 double calculate_distance(Coordinate *c1, Coordinate *c2)
 {
@@ -146,15 +154,6 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 
 int get_gps_coordinate(GPS_data *gps)
 {
-    //data for simulation
-/*    static double c[30]={46.3, -71.5, 46.5, -71.7, 46.68, -71.87, 46.6839, -71.8785, 46.68, -71.83, 46.685, -71.838, 46.68576, -71.83897, 
-    46.668, -71.791, 46.668241, -71.791758, 46.666, -71.693, 46.666564, -71.693272, 46.673, -71.665, 46.673956, -71.665416, 46.697, -71.576, 46.69703, -71.57623};
-    static int i=0;
-    gps->gps_coord.latitude = c[i];
-    gps->gps_coord.longitude = c[i+1];
-    i=i+2;
-    if(i==30) i=0;*/
-
     char line[MINMEA_MAX_SENTENCE_LENGTH];
     FILE *port_com = fopen("/dev/ttyO1", "r"); // Beagle Blue : ttyO1=Uart1(3.3V), ttyO2=Uart2(GPS 5V)
     if(port_com == NULL)  
@@ -162,7 +161,6 @@ int get_gps_coordinate(GPS_data *gps)
         printf("\nError opening GPS serial port!\n");     
         return -1;
     }
-
     gps->valid = false;
     fflush(port_com);
     int timeout = 0;
@@ -179,14 +177,12 @@ int get_gps_coordinate(GPS_data *gps)
                     //        minmea_tocoord(&frame.latitude), minmea_tocoord(&frame.longitude), minmea_tofloat(&frame.speed)); 
                     gps->gps_coord.latitude = minmea_tocoord(&frame.latitude);
                     gps->gps_coord.longitude = minmea_tocoord(&frame.longitude);
-
                     gps->hour = frame.time.hours;
                     gps->minute = frame.time.minutes;
                     gps->second = frame.time.seconds;
                     gps->day = frame.date.day;
                     gps->month = frame.date.month;
                     gps->year = frame.date.year;
-
                     gps->true_track = minmea_tofloat(&frame.course);
                     gps->speed_kph = minmea_tofloat(&frame.speed) * 1.852;
                     gps->declin_mag = minmea_tofloat(&frame.variation);
@@ -198,7 +194,6 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->valid = false;
                 }
             } break;
-
             case MINMEA_SENTENCE_GGA: {
                 struct minmea_sentence_gga frame;
                 if (minmea_parse_gga(&frame, line)) {
@@ -210,7 +205,6 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->fix_quality = 0;
                 }
             } break;
-
              case MINMEA_SENTENCE_GST: {
                 struct minmea_sentence_gst frame;
                  if (minmea_parse_gst(&frame, line)) {
@@ -222,7 +216,6 @@ int get_gps_coordinate(GPS_data *gps)
                     //printf(INDENT_SPACES "$xxGST sentence is not parsed\n");
                 }
             } break;
-
             case MINMEA_SENTENCE_GSV: {
                 struct minmea_sentence_gsv frame;
                 if (minmea_parse_gsv(&frame, line)) {
@@ -238,35 +231,9 @@ int get_gps_coordinate(GPS_data *gps)
                     gps->sat_in_view = 0;
                 }
             } break;
-
-            case MINMEA_SENTENCE_VTG: {
-               struct minmea_sentence_vtg frame;
-               if (minmea_parse_vtg(&frame, line)) {
-                    //printf(INDENT_SPACES "$xxVTG: true track degrees = %f\n", minmea_tofloat(&frame.true_track_degrees));
-                    //printf(INDENT_SPACES "        magnetic track degrees = %f\n", minmea_tofloat(&frame.magnetic_track_degrees));
-                    //printf(INDENT_SPACES "        speed knots = %f\n", minmea_tofloat(&frame.speed_knots));
-                    //printf(INDENT_SPACES "        speed kph = %f\n", minmea_tofloat(&frame.speed_kph)); 
-               }
-               else {
-                    //printf(INDENT_SPACES "$xxVTG sentence is not parsed\n");
-               }
-            } break;
-
-            case MINMEA_SENTENCE_ZDA: {
-                struct minmea_sentence_zda frame;
-                if (minmea_parse_zda(&frame, line)) {
-                    //printf(INDENT_SPACES "$xxZDA: %d:%d:%d %02d.%02d.%d UTC%+03d:%02d\n", frame.time.hours, frame.time.minutes, 
-                    //        frame.time.seconds, frame.date.day, frame.date.month, frame.date.year, frame.hour_offset, frame.minute_offset); 
-                }
-                else {
-                    //printf(INDENT_SPACES "$xxZDA sentence is not parsed\n");
-                }
-            } break;
-
             case MINMEA_INVALID: {
                 //printf(INDENT_SPACES "$xxxxx sentence is not valid\n");
             } break;
-
             default: {
                 //printf(INDENT_SPACES "$xxxxx sentence is not parsed\n");
             } break;
@@ -281,44 +248,22 @@ double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
 {
     //todo: PID goto wp
 
-    double dist;
-    dist = calculate_distance(wp_list->target_waypoint->wp_coordinate, gps->gps_coord);
+    double dist=0.0;
+    dist = calculate_distance(wp_list->target_waypoint->wp_coordinate, &(gps->gps_coord));
     if(isnan(dist))
     {
          return 9999.9;
     }
 
-    if(wp_list->target_waypoint == wp_list->first_waypoint)
-    {
-        printf("\nWaiting to be at starting line... \n");
-    }
-
-    printf("\rGPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
- 	//printf("Distance todo= %8.3lf", calculate_distance(&gps->gps_coord, wp_list->target_waypoint->wp_coordinate));
-/*	printf("   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
-	printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
-	printf(" course: %5.1f, speed:%5.2f", gps.true_track, gps.speed_kph); */
-	fflush(stdout);
-    
-	
-/* 	printf("\nStart passage... time= %ld\n", time_passage);
-	do
-	{
-		get_gps_coordinate(&gps);
-		distance_to_target = goto_waypoint(&gps.gps_coord, waypoint_passage->target_waypoint);
-		bearing_to_target = calculate_bearing(&gps.gps_coord, waypoint_passage->target_waypoint->wp_coordinate);
-		printf("\rNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf", waypoint_passage->target_waypoint->identification, distance_to_target, bearing_to_target);
-		fflush(stdout);
-		if(!isnan(distance_to_target) && distance_to_target < waypoint_passage->target_waypoint->target_radius)
-		{
-			waypoint_passage->target_waypoint = waypoint_passage->target_waypoint->next_waypoint;
-			printf("\n");
-		}
-		sleep(1);
-	}
-	while(waypoint_passage->target_waypoint != waypoint_passage->destination_waypoint);
- */
-
-    printf("\nd=%lf",dist);
     return dist;
+}
+
+int print_GPS_data(GPS_data *gps)
+{
+    printf("GPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
+ 	printf("   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
+	printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
+	printf(" course: %5.1f, speed:%5.2f", gps->true_track, gps->speed_kph);
+	fflush(stdout);
+    return 0;
 }

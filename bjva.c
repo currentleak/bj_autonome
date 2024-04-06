@@ -1,34 +1,48 @@
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <time.h>
 
-#include "nav.c"
-//#include "nav.h"
-#include "minmea.c"
-//#include "minmea.h"
-#include "bbb_rc.c"
-//#include "bbb_rc.h"
-
-#define TRIG_DISTANCE 0.1
+#include "nav.h"
+#include "minmea.h"
+#include "bbb_rc.h"
 
 int main()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
 	Waypoint_list *waypoint_passage;
-	GPS_data gps = {0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false};
-	time_t time_passage = time(NULL);
+	GPS_data gps = {0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, {0.0, 0.0}};
+	time_t time_passage;
+	double distance = 0.0;
 
 	init_bbb_rc(); // Init sensors : button, ADC, MPU and servos
 	waypoint_passage = read_waypoint_file();
+	if(waypoint_passage==NULL)
+		return -1;
+	print_WP_list(waypoint_passage);
+	waypoint_passage->target_waypoint = waypoint_passage->first_waypoint; // GPS coord Starting point
+	if(waypoint_passage->target_waypoint==NULL)
+		return -1;
 
-	printf("\nStart Passage, time 0= %lds ", time_passage);
+    printf("\nWaiting to be at starting line... \n");
+
 	do
 	{
 		get_gps_coordinate(&gps);
-		if(goto_next_waypoint(waypoint_passage, &gps) < TRIG_DISTANCE)
+		distance = goto_next_waypoint(waypoint_passage, &gps);
+		printf("\rNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf, ", waypoint_passage->target_waypoint->identification, distance, 
+				calculate_bearing(&(gps.gps_coord), waypoint_passage->target_waypoint->wp_coordinate));
+		print_GPS_data(&gps);
+
+		if( distance < waypoint_passage->target_waypoint->target_radius)
 		{
+			if(waypoint_passage->target_waypoint == waypoint_passage->first_waypoint)
+			{
+				time_passage = time(NULL);
+				printf("\nStart Passage, time 0= %lds", time_passage);
+			}
 			waypoint_passage->target_waypoint = waypoint_passage->target_waypoint->next_waypoint;
+			printf("\n");
 		}
 
 	} while (waypoint_passage->target_waypoint != NULL);

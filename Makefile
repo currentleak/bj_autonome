@@ -12,8 +12,8 @@ WFLAGS		:= -Wall -Wextra -Werror=float-equal -Wuninitialized -Wunused-variable -
 CFLAGS		:= -g -c -Wall
 LDFLAGS		:= -pthread -lm -lrt -l:librobotcontrol.so.1
 
-# SOURCES		:= $(wildcard *.c)
-SOURCES                := bjva.c
+SOURCES		:= $(wildcard *.c)
+#SOURCES     := bjva.c
 INCLUDES	:= $(wildcard *.h)
 OBJECTS		:= $(SOURCES:$%.c=$%.o)
 

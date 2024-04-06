@@ -54,12 +54,14 @@ typedef struct GPS_data
 }GPS_data;
 
 Waypoint_list *read_waypoint_file(void);
+int print_WP_list(Waypoint_list *);
 void destroy_waypoint_list(Waypoint_list *);
 double calculate_distance(Coordinate *, Coordinate *);
 double calculate_bearing(Coordinate *, Coordinate *);
 
 int get_gps_coordinate(GPS_data *);
 double goto_next_waypoint(Waypoint_list *, GPS_data *);
+int print_GPS_data(GPS_data *);
 
 //int check_safety_zone ();
 
