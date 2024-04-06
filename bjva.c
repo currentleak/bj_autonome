@@ -15,7 +15,15 @@ int main()
 	time_t time_passage;
 	double distance = 0.0;
 
-	init_bbb_rc(); // Init sensors : button, ADC, MPU and servos
+	FILE *log_file;
+    if ((log_file = fopen("log_bjva.txt","a")) == NULL)
+    {
+        printf("\nError creating log file\n");
+        return -1;
+    }
+
+	//init_bbb_rc(); // Init sensors : button, ADC, MPU and servos
+	
 	waypoint_passage = read_waypoint_file();
 	if(waypoint_passage==NULL)
 		return -1;
@@ -28,10 +36,15 @@ int main()
 
 	do
 	{
+		sleep(1);
 		get_gps_coordinate(&gps);
 		distance = goto_next_waypoint(waypoint_passage, &gps);
 		printf("\rNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf, ", waypoint_passage->target_waypoint->identification, distance, 
 				calculate_bearing(&(gps.gps_coord), waypoint_passage->target_waypoint->wp_coordinate));
+		fprintf(log_file, "\nNext waypoint Id= %3d, Distance to next waypoint= %8.3lf, Bearing= %5.1lf, ", waypoint_passage->target_waypoint->identification, distance, 
+				calculate_bearing(&(gps.gps_coord), waypoint_passage->target_waypoint->wp_coordinate));
+		fflush(log_file);
+		log_GPS_data(&gps, log_file);		
 		print_GPS_data(&gps);
 
 		if( distance < waypoint_passage->target_waypoint->target_radius)
@@ -50,6 +63,7 @@ int main()
 	time_passage = time(NULL) - time_passage;
 	printf("\nAt destination! Duration= %lds\n\n", time_passage);
 
+	fclose(log_file);
 	fflush(stdout);
 	if(waypoint_passage!=NULL) {
 		destroy_waypoint_list(waypoint_passage);

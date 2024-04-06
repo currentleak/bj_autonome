@@ -33,7 +33,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = 0;  // starting waypoint
-        wp->target_radius = 0.01; // 10m
+        wp->target_radius = 0.1; // 10m
         wp->next_waypoint = NULL;
         wp->prev_waypoint = NULL;
         wp_list->first_waypoint = wp;
@@ -63,7 +63,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = i;
-        wp->target_radius = 0.1;  // 100m
+        wp->target_radius = 0.2;  // 100m
         wp->prev_waypoint = wp_list->destination_waypoint;
         wp->next_waypoint = NULL;
         wp->distance_to_next_wp = 0.0;
@@ -76,7 +76,7 @@ Waypoint_list *read_waypoint_file()
         i++;
     }
     fclose(fptr);
-    wp->target_radius = 0.01; // 10m, destination waypoint has a closer target radius
+    wp->target_radius = 0.1; // 10m, destination waypoint has a closer target radius
     if(wp_list->waypoint_qty < 2)
     {
         printf("\nError Waypoint list should contain at least 2 coordinates\n");
@@ -265,5 +265,15 @@ int print_GPS_data(GPS_data *gps)
 	printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
 	printf(" course: %5.1f, speed:%5.2f", gps->true_track, gps->speed_kph);
 	fflush(stdout);
+    return 0;
+}
+
+int log_GPS_data(GPS_data *gps, FILE *log_file)
+{
+    fprintf(log_file, "GPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
+ 	fprintf(log_file, "   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
+	fprintf(log_file, "   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
+	fprintf(log_file, " course: %5.1f, speed:%5.2f", gps->true_track, gps->speed_kph);
+	fflush(log_file);
     return 0;
 }
