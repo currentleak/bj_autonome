@@ -26,14 +26,12 @@
 
 
 // function declarations
-int init_bbb_rc();
-int steer_to_bearing();
+int init_bbb_rc(rc_mpu_data_t *);
+int clean_bbb_rc();
 
-void on_pause_press();
-void on_pause_release();
+int steer_to_bearing(rc_mpu_data_t *);
 
-void print_header();
-void print_MPU_data();
+int print_and_log_mpu(rc_mpu_data_t *);
 
 
 

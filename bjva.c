@@ -17,6 +17,7 @@ int main()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
 	time_t time_passage;
+	rc_mpu_data_t data_mpu;
 	GPS_data gps = {0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, {0.0, 0.0}};
 	double distance = 0.0;
 	Waypoint_list *waypoint_passage = read_waypoint_file();
@@ -29,12 +30,8 @@ int main()
 	print_WP_list(waypoint_passage);
 	waypoint_passage->target_waypoint = waypoint_passage->first_waypoint; // GPS coord Starting point
 
-	//init_bbb_rc(); // Init sensors : button, ADC, MPU and servos
-
-
-
-
-
+	// TODO
+	init_bbb_rc(&data_mpu); // Init sensors : button, ADC, MPU and servos
 
 
     printf("\nWaiting to be at starting line... \n");
@@ -44,6 +41,7 @@ int main()
 		get_gps_coordinate(&gps);
 		distance = goto_next_waypoint(waypoint_passage, &gps);
 		print_and_log_nav(waypoint_passage, &gps, distance);
+		print_and_log_mpu(&data_mpu);
 		if( distance < waypoint_passage->target_waypoint->target_radius)
 		{
 			if(waypoint_passage->target_waypoint == waypoint_passage->first_waypoint)
@@ -59,6 +57,7 @@ int main()
 	time_passage = time(NULL) - time_passage;
 	printf("\nAt destination! Duration= %lds\n\n", time_passage);
 
+	clean_bbb_rc();
 	fflush(stdout);
 	if(waypoint_passage!=NULL) {
 		destroy_waypoint_list(waypoint_passage);
