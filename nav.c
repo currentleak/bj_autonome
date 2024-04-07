@@ -260,20 +260,18 @@ double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
 
 int print_GPS_data(GPS_data *gps)
 {
-    printf("GPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
- 	printf("   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
-	printf("   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
-	printf(" course: %5.1f, speed:%5.2f", gps->true_track, gps->speed_kph);
-	fflush(stdout);
+    printf("     %02d,        %1d,", gps->sat_in_view, gps->fix_quality);
+ 	printf(" %10.6lf, %10.6lf, ", gps->gps_coord.latitude, gps->gps_coord.longitude);
+	printf("  %02d:%02d:%02d, %02d/%02d/%2d, ", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
+	printf("  %5.1f,   %5.2f", gps->true_track, gps->speed_kph);
     return 0;
 }
 
 int log_GPS_data(GPS_data *gps, FILE *log_file)
 {
-    fprintf(log_file, "GPS Qty:%02d, Fix Qual:%1d, ", gps->sat_in_view, gps->fix_quality);
- 	fprintf(log_file, "   lat: %10.6lf, lon:%10.6lf", gps->gps_coord.latitude, gps->gps_coord.longitude);
-	fprintf(log_file, "   time: %02dh:%02dm:%02ds %02d/%02d/%2d", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
-	fprintf(log_file, " course: %5.1f, speed:%5.2f", gps->true_track, gps->speed_kph);
-	fflush(log_file);
+    fprintf(log_file, "     %02d,        %1d,", gps->sat_in_view, gps->fix_quality);
+ 	fprintf(log_file, " %10.6lf, %10.6lf, ", gps->gps_coord.latitude, gps->gps_coord.longitude);
+	fprintf(log_file, "  %02d:%02d:%02d, %02d/%02d/%2d, ", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
+	fprintf(log_file, "  %5.1f,   %5.2f", gps->true_track, gps->speed_kph);
     return 0;
 }
