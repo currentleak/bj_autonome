@@ -1,3 +1,9 @@
+/**
+ * 
+ *
+ *
+ *
+ */
 //#include <stdlib.h>
 #include <stdio.h>
 //#include <unistd.h>
@@ -7,8 +13,6 @@
 #include "minmea.h"
 #include "bbb_rc.h"
 
-int print_log(Waypoint_list *, GPS_data *, double distance);
-
 int main()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
@@ -17,20 +21,20 @@ int main()
 	double distance = 0.0;
 	Waypoint_list *waypoint_passage = read_waypoint_file();
 
-	if(waypoint_passage==NULL)
+	if(waypoint_passage == NULL || waypoint_passage->first_waypoint == NULL)
 	{
-		printf("\nError no passage\n");
+		printf("\nError no passagedefined \n");
 		return -1;
 	}
 	print_WP_list(waypoint_passage);
 	waypoint_passage->target_waypoint = waypoint_passage->first_waypoint; // GPS coord Starting point
-	if(waypoint_passage->target_waypoint==NULL)
-	{
-		printf("\nError no waypoint\n");
-		return -1;
-	}
 
 	//init_bbb_rc(); // Init sensors : button, ADC, MPU and servos
+
+
+
+
+
 
 
     printf("\nWaiting to be at starting line... \n");
@@ -39,7 +43,7 @@ int main()
 		sleep(1);
 		get_gps_coordinate(&gps);
 		distance = goto_next_waypoint(waypoint_passage, &gps);
-		print_log(waypoint_passage, &gps, distance);
+		print_and_log_nav(waypoint_passage, &gps, distance);
 		if( distance < waypoint_passage->target_waypoint->target_radius)
 		{
 			if(waypoint_passage->target_waypoint == waypoint_passage->first_waypoint)
@@ -59,37 +63,5 @@ int main()
 	if(waypoint_passage!=NULL) {
 		destroy_waypoint_list(waypoint_passage);
 	}
-	return 0;
-}
-
-int print_log(Waypoint_list *wpl, GPS_data *gps, double d)
-{
-	static int try = 0;
-	FILE *log_file;
-    if ((log_file = fopen("log_bjva.txt","a")) == NULL)
-    {
-        printf("\nError creating/opening log file\n");
-        return -1;
-    }
-	if (try==0)
-	{
-		try=1;
-		printf("\nNew Passage!");
-		printf("\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
-		fprintf(log_file, "\nNew Passage!");
-		fprintf(log_file, "\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
-	}
-	printf("\r  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, d, 
-				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
-	fprintf(log_file, "\n  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, d, 
-				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
-
-	log_GPS_data(gps, log_file);		
-	print_GPS_data(gps);
-
-	fflush(stdout);
-	fflush(log_file);
-
-	fclose(log_file);
 	return 0;
 }

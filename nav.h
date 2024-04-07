@@ -61,8 +61,9 @@ double calculate_bearing(Coordinate *, Coordinate *);
 
 int get_gps_coordinate(GPS_data *);
 double goto_next_waypoint(Waypoint_list *, GPS_data *);
-int print_GPS_data(GPS_data *);
-int log_GPS_data(GPS_data *, FILE *);
+
+int print_and_log_nav(Waypoint_list *, GPS_data *, double);
+
 
 //int check_safety_zone ();
 

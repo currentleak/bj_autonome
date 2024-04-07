@@ -258,20 +258,40 @@ double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
     return dist;
 }
 
-int print_GPS_data(GPS_data *gps)
+int print_and_log_nav(Waypoint_list *wpl, GPS_data *gps, double d)
 {
+	static int try = 0;
+	FILE *log_file;
+    if ((log_file = fopen("log_bjva.txt","a")) == NULL)
+    {
+        printf("\nError creating/opening log file\n");
+        return -1;
+    }
+	if (try==0)
+	{
+		try=1;
+		printf("\nNew Passage!");
+		printf("\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
+		fprintf(log_file, "\nNew Passage!");
+		fprintf(log_file, "\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
+	}
+	printf("\r  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, d, 
+				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
+	fprintf(log_file, "\n  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, d, 
+				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
+
     printf("     %02d,        %1d,", gps->sat_in_view, gps->fix_quality);
  	printf(" %10.6lf, %10.6lf, ", gps->gps_coord.latitude, gps->gps_coord.longitude);
 	printf("  %02d:%02d:%02d, %02d/%02d/%2d, ", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
 	printf("  %5.1f,   %5.2f", gps->true_track, gps->speed_kph);
-    return 0;
-}
 
-int log_GPS_data(GPS_data *gps, FILE *log_file)
-{
     fprintf(log_file, "     %02d,        %1d,", gps->sat_in_view, gps->fix_quality);
  	fprintf(log_file, " %10.6lf, %10.6lf, ", gps->gps_coord.latitude, gps->gps_coord.longitude);
 	fprintf(log_file, "  %02d:%02d:%02d, %02d/%02d/%2d, ", gps->hour, gps->minute, gps->second, gps->day, gps->month, gps->year);
 	fprintf(log_file, "  %5.1f,   %5.2f", gps->true_track, gps->speed_kph);
-    return 0;
+
+	fflush(stdout);
+	fflush(log_file);
+	fclose(log_file);
+	return 0;
 }
