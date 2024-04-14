@@ -13,6 +13,8 @@
 #include "minmea.h"
 #include "bbb_rc.h"
 
+void clean_mem(Waypoint_list *);
+
 int main()
 {
 	printf("\nProjet BJ - Voilier Miniature Autonome\n");
@@ -30,8 +32,12 @@ int main()
 	print_WP_list(waypoint_passage);
 	waypoint_passage->target_waypoint = waypoint_passage->first_waypoint; // GPS coord Starting point
 
-	// TODO
-	init_bbb_rc(&data_mpu); // Init sensors : button, ADC, MPU and servos
+	if(init_bbb_rc(&data_mpu)!=0) // Init sensors : button, ADC, MPU and servos
+	{
+		printf("\nError init MPU\n");
+		clean_mem(waypoint_passage);
+		return -1;
+	}
 
 
     printf("\nWaiting to be at starting line... \n");
@@ -57,10 +63,15 @@ int main()
 	time_passage = time(NULL) - time_passage;
 	printf("\nAt destination! Duration= %lds\n\n", time_passage);
 
+	clean_mem(waypoint_passage);
+	return 0;
+}
+
+void clean_mem(Waypoint_list *waypoint_passage)
+{
 	clean_bbb_rc();
 	fflush(stdout);
 	if(waypoint_passage!=NULL) {
 		destroy_waypoint_list(waypoint_passage);
 	}
-	return 0;
 }

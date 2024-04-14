@@ -33,7 +33,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = 0;  // starting waypoint
-        wp->target_radius = 0.1; // 10m
+        wp->target_radius = 0.05; // 50m
         wp->next_waypoint = NULL;
         wp->prev_waypoint = NULL;
         wp_list->first_waypoint = wp;
@@ -63,7 +63,7 @@ Waypoint_list *read_waypoint_file()
         wp->wp_coordinate->latitude = lat;
         wp->wp_coordinate->longitude = lon;
         wp->identification = i;
-        wp->target_radius = 0.2;  // 100m
+        wp->target_radius = 0.1;  // 100m
         wp->prev_waypoint = wp_list->destination_waypoint;
         wp->next_waypoint = NULL;
         wp->distance_to_next_wp = 0.0;
@@ -76,7 +76,7 @@ Waypoint_list *read_waypoint_file()
         i++;
     }
     fclose(fptr);
-    wp->target_radius = 0.1; // 10m, destination waypoint has a closer target radius
+    wp->target_radius = 0.05; // 50m, destination waypoint has a closer target radius
     if(wp_list->waypoint_qty < 2)
     {
         printf("\nError Waypoint list should contain at least 2 coordinates\n");
@@ -275,6 +275,7 @@ int print_and_log_nav(Waypoint_list *wpl, GPS_data *gps, double distance)
 		fprintf(log_file, "\nNew Passage!");
 		fprintf(log_file, "\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
 	}
+	//printf("\033[F");
 	printf("  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, distance, 
 				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
 	fprintf(log_file, "  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, distance, 

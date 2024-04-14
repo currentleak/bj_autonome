@@ -85,11 +85,11 @@ int print_and_log_mpu(rc_mpu_data_t *data)
 	if (print_header)
 	{
 		print_header = 0;
-		printf("\nPress and release pause button to turn green LED on and off");
-		printf("\nhold pause button down for 2 seconds to exit");
-		printf("\nif Mag doesn't work, then recalibrate it");
-		printf("\nNew Passage!");
-		printf("\ncalibrated GYRO-MAG-ACCEL: %d, %d, %d", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
+		//printf("\nPress and release pause button to turn green LED on and off");
+		//printf("\nhold pause button down for 2 seconds to exit");
+		//printf("\nif Mag doesn't work, then recalibrate it");
+		//printf("\nNew Passage!");
+		//printf("\ncalibrated GYRO-MAG-ACCEL: %d, %d, %d", rc_mpu_is_gyro_calibrated(), rc_mpu_is_mag_calibrated(), rc_mpu_is_accel_calibrated());
 		// Header for DMP data
 		printf("\n");
 		printf(" Raw Compass |");
@@ -178,8 +178,9 @@ int steer_to_bearing(rc_mpu_data_t *data)
 		// send result
 		if(rc_servo_send_pulse_normalized(SERVO_RUDDER,servo_rudder_pos)==-1)
 		{
+			printf("Error servo control\n");
 			return -1;
 		}
-		return 0;
 	}
+	return 0;
 }
