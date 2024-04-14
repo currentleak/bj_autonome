@@ -44,7 +44,7 @@ int main()
 	{	// TODO : check if the following next waypoint is nearest than the next waypoint
 		sleep(1);
 		get_gps_coordinate(&gps);
-		distance = goto_next_waypoint(waypoint_passage, &gps);
+		distance = goto_waypoint(waypoint_passage, &gps);
 		print_and_log_nav(waypoint_passage, &gps, distance);
 		print_and_log_mpu(&data_mpu);
 		printf("\033[F");
