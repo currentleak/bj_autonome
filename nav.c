@@ -275,7 +275,6 @@ int print_and_log_nav(Waypoint_list *wpl, GPS_data *gps, double distance)
 		fprintf(log_file, "\nNew Passage!");
 		fprintf(log_file, "\nWP ID,  Distance to WP, Bearing, GPS Qty, Fix Qual,   latitude,  longitude,       time,     date,  course,   speed\n");
 	}
-	//printf("\033[F");
 	printf("  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, distance, 
 				calculate_bearing(&(gps->gps_coord), wpl->target_waypoint->wp_coordinate));
 	fprintf(log_file, "  %3d,        %8.3lf,   %5.1lf, ", wpl->target_waypoint->identification, distance, 

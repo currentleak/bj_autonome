@@ -39,7 +39,6 @@ int main()
 		return -1;
 	}
 
-
     printf("\nWaiting to be at starting line... \n");
 	do
 	{	// TODO : check if the following next waypoint is nearest than the next waypoint
@@ -48,6 +47,9 @@ int main()
 		distance = goto_next_waypoint(waypoint_passage, &gps);
 		print_and_log_nav(waypoint_passage, &gps, distance);
 		print_and_log_mpu(&data_mpu);
+		printf("\033[F");
+		printf("\033[F");
+
 		if( distance < waypoint_passage->target_waypoint->target_radius)
 		{
 			if(waypoint_passage->target_waypoint == waypoint_passage->first_waypoint)
