@@ -1,9 +1,12 @@
 /**
- * 
+ * @file bjva.c
+ * @brief      This program is to control an autonomous miniature sail boat...
  *
- *
+ * @author     Kevin Cotton
+ * @date       2024-07-14
  *
  */
+
 //#include <stdlib.h>
 #include <stdio.h>
 //#include <unistd.h>
@@ -44,7 +47,7 @@ int main()
 	{	// TODO : check if the following next waypoint is nearest than the next waypoint
 		sleep(1);
 		get_gps_coordinate(&gps);
-		distance = goto_waypoint(waypoint_passage, &gps);
+		distance = goto_next_waypoint(waypoint_passage, &gps);
 		print_and_log_nav(waypoint_passage, &gps, distance);
 		print_and_log_mpu(&data_mpu);
 		printf("\033[F");
@@ -69,6 +72,11 @@ int main()
 	return 0;
 }
 
+
+/**
+ * @brief		Free the memory used by the waypoint list.
+ * @param		Container for the waypoint list to be deleted. 
+ */
 void clean_mem(Waypoint_list *waypoint_passage)
 {
 	clean_bbb_rc();

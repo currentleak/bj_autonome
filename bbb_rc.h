@@ -1,7 +1,9 @@
 /**
- * 
+ * @file    bbb_rc.h
+ * @brief   interface to BeagleBoneBlue' sensors
  *
- *
+ * @author  Kevin Cotton
+ * @date    2024-07-14
  *
  */
 #define _GNU_SOURCE
@@ -9,8 +11,8 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <signal.h>
-#include <stdlib.h> // for atoi() and exit()
-#include <robotcontrol.h> // includes ALL Robot Control subsystems
+#include <stdlib.h> ///< for atoi() and exit()
+#include <robotcontrol.h> ///< includes ALL Robot Control subsystems
 #include <rc_usefulincludes.h>
 #include <rc/mpu.h>
 #include <rc/time.h>
@@ -21,8 +23,8 @@
 #define GPIO_INT_PIN_CHIP 3
 #define GPIO_INT_PIN_PIN  21
 
-#define SERVO_RUDDER 1  // servo for rudder
-#define SERVO_SHEET 2   // servo for main sail and genova sheet
+#define SERVO_RUDDER 1  ///< servo for rudder
+#define SERVO_SHEET 2   ///< servo for main sail and genova sheet
 
 
 // function declarations

@@ -1,7 +1,9 @@
 /**
- * 
+ * @file    nav.h
+ * @brief   Handle navigation data
  *
- *
+ * @author  Kevin Cotton
+ * @date    2024-07-14
  *
  */
 #include <stdlib.h>
@@ -16,13 +18,13 @@
 
 #define INDENT_SPACES "  "
 
-typedef struct Coordinate
+typedef struct Coordinate ///< Coordinate: position on Earth (lat, long)
 {
     double latitude;
     double longitude; 
 }Coordinate;
 
-typedef struct Waypoint // latitude-longitude telling us where to go
+typedef struct Waypoint ///< latitude-longitude telling us where to go
 {
     struct Coordinate *wp_coordinate;
     int identification;
@@ -33,7 +35,7 @@ typedef struct Waypoint // latitude-longitude telling us where to go
     struct Waypoint *prev_waypoint;
 }Waypoint;
 
-typedef struct Waypoint_list // waypoint list for passage
+typedef struct Waypoint_list ///< waypoint list for passage
 {
     Waypoint *first_waypoint;
     Waypoint *destination_waypoint;
@@ -41,7 +43,7 @@ typedef struct Waypoint_list // waypoint list for passage
     int waypoint_qty;
 }Waypoint_list;
 
-typedef struct GPS_data
+typedef struct GPS_data ///< GPS data and status
 {
     int fix_quality;
     int sat_in_view;
@@ -53,11 +55,11 @@ typedef struct GPS_data
     Coordinate gps_coord;
 }GPS_data;
 
-Waypoint_list *read_waypoint_file(void);
-int print_WP_list(Waypoint_list *);
-void destroy_waypoint_list(Waypoint_list *);
-double calculate_distance(Coordinate *, Coordinate *);
-double calculate_bearing(Coordinate *, Coordinate *);
+Waypoint_list *read_waypoint_file(void); ///< read waypoint from a pre-existing file
+int print_WP_list(Waypoint_list *); ///< Print the Waypoint list to the console
+void destroy_waypoint_list(Waypoint_list *); ///< clean waypoint memory
+double calculate_distance(Coordinate *, Coordinate *); ///< Compute distance between 2 coordinates
+double calculate_bearing(Coordinate *, Coordinate *); ///< Compute angle from a coordinate to another coordinate
 
 int get_gps_coordinate(GPS_data *);
 double goto_waypoint(Waypoint_list *, GPS_data *);

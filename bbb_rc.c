@@ -1,6 +1,9 @@
 /**
- * @file bbb_rc.c
- *
+ * @file 	bbb_rc.c
+ * @brief	This program is to give interface to BeagleBoneBlue' sensors...
+ * 
+ * @author  Kevin Cotton
+ * @date    2024-07-14
  * 
  */
 
@@ -15,15 +18,12 @@ int frequency_hz =50;
 
 double bearing = 90.0; //target direction
 double bearing_tolerance = 3.0;
+
+
 /**
- * This template contains these critical components
- * - ensure no existing instances are running and make new PID file
- * - start the signal handler
- * - initialize subsystems you wish to use
- * - while loop that checks for EXITING condition
- * - cleanup subsystems at the end
- *
- * @return     0 during normal operation, -1 on error
+ * @brief		Initialise all required BeagleBoneBlue' sensors
+ * @param		Container for holding the sensor data. 
+ * @return		0 during normal operation, -1 on error
  */
 int init_bbb_rc(rc_mpu_data_t *data)
 {
@@ -34,10 +34,13 @@ int init_bbb_rc(rc_mpu_data_t *data)
 	}
 	if(rc_adc_batt()<6.0){
 		fprintf(stderr,"ERROR: battery disconnected or insufficiently charged to drive servos\n");
-		return -1;
+//		return -1;
 	}
-	printf("bat. voltage=%lf\n", rc_adc_batt());
-	rc_adc_cleanup();
+	else
+	{
+		printf("bat. voltage=%lf\n", rc_adc_batt());
+		rc_adc_cleanup();
+	}
 	
 	// initialize PRU
 	if(rc_servo_init()) return -1;
@@ -52,13 +55,13 @@ int init_bbb_rc(rc_mpu_data_t *data)
 	conf_MPU.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
 	
 	// use in DMP mode
-	conf_MPU.dmp_sample_rate = 4; // sample rate in hertz, 200,100,50,40,25,20,10,8,5,4
+	conf_MPU.dmp_sample_rate = 4; ///< sample rate in hertz, 200,100,50,40,25,20,10,8,5,4
 	conf_MPU.dmp_fetch_accel_gyro = 1;
 	conf_MPU.enable_magnetometer = 1;
 	//conf_MPU.read_mag_after_callback = 1; //default 1 to improve latency
 	//conf_MPU.dmp_interrupt_priority = 1;
 	//conf_MPU.dmp_interrupt_sched_policy = SCHED_FIFO;
-	conf_MPU.orient= ORIENTATION_Y_UP; // ORIENTATION_Z_UP, ORIENTATION_Z_DOWN, ORIENTATION_X_UP, ORIENTATION_X_DOWN, ORIENTATION_Y_UP, ORIENTATION_Y_DOWN, ORIENTATION_X_FORWARD, ORIENTATION_X_BACK 
+	conf_MPU.orient= ORIENTATION_Y_UP; ///< ORIENTATION_Z_UP, ORIENTATION_Z_DOWN, ORIENTATION_X_UP, ORIENTATION_X_DOWN, ORIENTATION_Y_UP, ORIENTATION_Y_DOWN, ORIENTATION_X_FORWARD, ORIENTATION_X_BACK 
 	
 	// initialize the imu for dmp operation
 	if(rc_mpu_initialize_dmp(data, conf_MPU)){
@@ -73,6 +76,11 @@ int init_bbb_rc(rc_mpu_data_t *data)
 	return 0;
 }
 
+/**
+ * @brief		Print data to console, and save them in a file
+ * @param		Container for holding the sensor data. 
+ * @return		0 during normal operation, -1 on error
+ */
 int print_and_log_mpu(rc_mpu_data_t *data)
 {
 	static int print_header = 1;
@@ -143,6 +151,10 @@ int print_and_log_mpu(rc_mpu_data_t *data)
 	return 0;
 }
 
+/**
+ * @brief		clean and power off 
+ * @return		0
+ */
 int clean_bbb_rc()
 {
 	// turn off things and close file descriptors
@@ -155,6 +167,11 @@ int clean_bbb_rc()
 	return 0;
 }
 
+/**
+ * @brief		Adjust servo to set the proper bearing
+ * @param		Container for holding the sensor data. 
+ * @return		0 during normal operation, -1 on error
+ */
 int steer_to_bearing(rc_mpu_data_t *data)
 {
 	//	rc_led_set(RC_LED_GREEN, 1);

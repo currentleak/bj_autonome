@@ -1,14 +1,19 @@
 /**
- * 
+ * @file    nav.c
+ * @brief   Handle navigation data
  *
- *
+ * @author  Kevin Cotton
+ * @date    2024-07-14
  *
  */
 #include "nav.h"
 
+/**
+ * @brief		Read file to fill the Waypoint list in memory
+ * @return		Pointer to the new Waypoint list
+ */
 Waypoint_list *read_waypoint_file()
 {
-    // read file to fill the waypoint list
     FILE *fptr;
     double lat, lon;
     if ((fptr = fopen("waypoint_list.dat","r")) == NULL)
@@ -85,6 +90,11 @@ Waypoint_list *read_waypoint_file()
     return wp_list;
 }
 
+/**
+ * @brief		Print the waypoint list and total distance to the console
+ * @param		Pointer to the waypoint list 
+ * @return		0 during normal operation, -1 on error
+ */
 int print_WP_list(Waypoint_list *wp_list)
 {
     // Print the Waypoint List   
@@ -109,7 +119,11 @@ int print_WP_list(Waypoint_list *wp_list)
     return 0;
 }
 
-
+/**
+ * @brief		Compute distance between 2 posistions in lat-long coordinate
+ * @param		Pointer to structure coordinate : 2 positions 
+ * @return		distance in meter
+ */
 double calculate_distance(Coordinate *c1, Coordinate *c2)
 {
     double term1 = pow(sin((DEG2RAD*(c2->latitude - c1->latitude))/ 2), 2);
@@ -123,7 +137,11 @@ double calculate_distance(Coordinate *c1, Coordinate *c2)
     return = EARTH_RADIUS * c;   */
 }
 
-// Function to calculate initial bearing between two points
+/**
+ * @brief		Compute bearing between two points coordinate
+ * @param		Pointer to structure coordinate : 2 positions 
+ * @return		angle (bearing) to next from coord 1 to coord 2
+ */
 double calculate_bearing(Coordinate *c1, Coordinate *c2)
 {
     double delta_lon = DEG2RAD*(c2->longitude - c1->longitude);
@@ -138,6 +156,10 @@ double calculate_bearing(Coordinate *c1, Coordinate *c2)
     return bearing;
 }
 
+/**
+ * @brief		Clean waypoint list memory 
+ * @param		Pointer waypoint list
+ */
 void destroy_waypoint_list(Waypoint_list *wp_list)
 {
 	Waypoint *wp, *wp_next;
@@ -152,6 +174,11 @@ void destroy_waypoint_list(Waypoint_list *wp_list)
 	free(wp_list);
 }
 
+/**
+ * @brief		Get coordinate from GPS Hardware
+ * @param		Pointer to structure status and data for GPS 
+ * @return		0 during normal operation, -1 on error
+ */
 int get_gps_coordinate(GPS_data *gps)
 {
     char line[MINMEA_MAX_SENTENCE_LENGTH];
@@ -244,6 +271,11 @@ int get_gps_coordinate(GPS_data *gps)
     return 0;
 }
 
+/**
+ * @brief		Change waypoint to next target
+ * @param		Pointer to waypoint list and to GPS data 
+ * @return		distance to next waypoint
+ */
 double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
 {
     //todo: PID goto wp
@@ -258,6 +290,11 @@ double goto_next_waypoint(Waypoint_list *wp_list, GPS_data *gps)
     return dist;
 }
 
+/**
+ * @brief		Print Navigation data to console, and save them in a file
+ * @param		Pointer to waypoint list and to GPS data, distance to next waypoint
+ * @return		0 during normal operation, -1 on error
+ */
 int print_and_log_nav(Waypoint_list *wpl, GPS_data *gps, double distance)
 {
 	static int print_header = 1;
