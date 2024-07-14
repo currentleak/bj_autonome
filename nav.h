@@ -62,7 +62,7 @@ double calculate_distance(Coordinate *, Coordinate *); ///< Compute distance bet
 double calculate_bearing(Coordinate *, Coordinate *); ///< Compute angle from a coordinate to another coordinate
 
 int get_gps_coordinate(GPS_data *);
-double goto_waypoint(Waypoint_list *, GPS_data *);
+double goto_next_waypoint(Waypoint_list *, GPS_data *);
 
 int print_and_log_nav(Waypoint_list *, GPS_data *, double);
 
